@@ -1,0 +1,40 @@
+{
+  "name": "Creep-Tasks",
+  "version": "0.0.0",
+  "description": "Tasks for your creeps",
+  "author": "Ben Bartlett",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bencbartlett/Creep-Tasks.git"
+  },
+  "homepage": "https://github.com/bencbartlett/Creep-Tasks#readme",
+  "bugs": {
+    "url": "https://github.com/bencbartlett/Creep-Tasks/issues"
+  },
+  "scripts": {
+    "lint": "tslint \"src/**/*.ts\"",
+    "push-main": "rollup -c --dest main",
+    "push-pserver": "rollup -c --dest pserver",
+    "push-sim": "rollup -c --dest sim",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch-main": "rollup -cw --dest main",
+    "watch-pserver": "rollup -cw --dest pserver",
+    "watch-sim": "rollup -cw --dest sim"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/lodash": "^3.10.1",
+    "@types/screeps": "^2.2.1",
+    "rollup": "^0.55.3",
+    "rollup-plugin-clean": "^1.0.0",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-screeps": "0.1.2",
+    "rollup-plugin-typescript2": "^0.11.0",
+    "tslint": "^5.8.0",
+    "typescript": "^2.7.2"
+  },
+  "dependencies": {
+    "source-map": "^0.6.1"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "lib": [
+      "dom",
+      "es2016"
+    ],
+    "baseUrl": "src/",
+    "sourceMap": false,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "removeComments": false,
+    "types": [
+      "lodash",
+      "typed-screeps"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
+
