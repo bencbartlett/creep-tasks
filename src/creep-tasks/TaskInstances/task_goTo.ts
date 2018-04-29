@@ -1,16 +1,16 @@
 import {Task} from '../Task';
 
 export type goToTargetType = { pos: RoomPosition } | RoomPosition;
-export const goToTaskName = 'goTo';
 
 export class TaskGoTo extends Task {
+	static taskName = 'goTo';
 	target: null;
 
 	constructor(target: goToTargetType, options = {} as TaskOptions) {
 		if (target instanceof RoomPosition) {
-			super(goToTaskName, {ref: '', pos: target}, options);
+			super(TaskGoTo.taskName, {ref: '', pos: target}, options);
 		} else {
-			super(goToTaskName, {ref: '', pos: target.pos}, options);
+			super(TaskGoTo.taskName, {ref: '', pos: target.pos}, options);
 		}
 		// Settings
 		this.settings.targetRange = 1;
@@ -25,6 +25,7 @@ export class TaskGoTo extends Task {
 	}
 
 	isValid(): boolean {
+		// It's necessary to override task.isValid() for tasks which do not have a RoomObject target
 		let validTask = false;
 		if (this.creep) {
 			validTask = this.isValidTask();

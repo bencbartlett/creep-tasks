@@ -1,24 +1,38 @@
+// TaskDrop: drops a resource at a position
+
 import {Task} from '../Task';
 
 export type dropTargetType = { pos: RoomPosition } | RoomPosition;
-export const dropTaskName = 'drop';
 
 export class TaskDrop extends Task {
 
+	static taskName = 'drop';
 	target: null;
+	data: {
+		resourceType: ResourceConstant
+		amount: number | undefined
+	};
 
-	constructor(target: dropTargetType, options = {} as TaskOptions) {
+	constructor(target: dropTargetType,
+				resourceType: ResourceConstant = RESOURCE_ENERGY,
+				amount: number | undefined     = undefined,
+				options                        = {} as TaskOptions) {
 		if (target instanceof RoomPosition) {
-			super(dropTaskName, {ref: '', pos: target}, options);
+			super(TaskDrop.taskName, {ref: '', pos: target}, options);
 		} else {
-			super(dropTaskName, {ref: '', pos: target.pos}, options);
+			super(TaskDrop.taskName, {ref: '', pos: target.pos}, options);
 		}
 		// Settings
 		this.settings.targetRange = 0;
+		// Data
+		this.data.resourceType = resourceType;
+		this.data.amount = amount;
 	}
 
 	isValidTask() {
-		return this.creep.carry.energy > 0;
+		let amount = this.data.amount || 1;
+		let resourcesInCarry = this.creep.carry[this.data.resourceType] || 0;
+		return resourcesInCarry >= amount;
 	}
 
 	isValidTarget() {
@@ -26,6 +40,7 @@ export class TaskDrop extends Task {
 	}
 
 	isValid(): boolean {
+		// It's necessary to override task.isValid() for tasks which do not have a RoomObject target
 		let validTask = false;
 		if (this.creep) {
 			validTask = this.isValidTask();
@@ -37,7 +52,7 @@ export class TaskDrop extends Task {
 			// Switch to parent task if there is one
 			let isValid = false;
 			if (this.parent) {
-				let isValid = this.parent.isValid();
+				isValid = this.parent.isValid();
 			}
 			this.finish();
 			return isValid;
@@ -45,10 +60,6 @@ export class TaskDrop extends Task {
 	}
 
 	work() {
-		// let res =
-		// if (!this.target) { // if the target is gone, we're done and clear the task
-		// 	this.finish();
-		// }
-		return this.creep.drop(RESOURCE_ENERGY);
+		return this.creep.drop(this.data.resourceType, this.data.amount);
 	}
 }

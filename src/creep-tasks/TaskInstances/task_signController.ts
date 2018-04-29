@@ -1,15 +1,19 @@
 import {Task} from '../Task';
 
 export type signControllerTargetType = StructureController;
-export const signControllerTaskName = 'signController';
-
-export var signature = 'Your signature here';
 
 export class TaskSignController extends Task {
-	target: signControllerTargetType;
 
-	constructor(target: signControllerTargetType, options = {} as TaskOptions) {
-		super(signControllerTaskName, target, options);
+	static taskName = 'signController';
+	target: signControllerTargetType;
+	data: {
+		signature: string;
+	};
+
+	constructor(target: signControllerTargetType, signature = 'Your signature here',
+				options                                     = {} as TaskOptions) {
+		super(TaskSignController.taskName, target, options);
+		this.data.signature = signature;
 	}
 
 	isValidTask() {
@@ -18,10 +22,10 @@ export class TaskSignController extends Task {
 
 	isValidTarget() {
 		let controller = this.target;
-		return (!controller.sign || controller.sign.text != signature);
+		return (!controller.sign || controller.sign.text != this.data.signature);
 	}
 
 	work() {
-		return this.creep.signController(this.target, signature);
+		return this.creep.signController(this.target, this.data.signature);
 	}
 }

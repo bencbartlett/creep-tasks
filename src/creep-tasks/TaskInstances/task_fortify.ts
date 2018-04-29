@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type fortifyTargetType = StructureWall | StructureRampart;
-export const fortifyTaskName = 'fortify';
 
 export class TaskFortify extends Task {
+
+	static taskName = 'fortify';
 	target: fortifyTargetType;
 
 	constructor(target: fortifyTargetType, options = {} as TaskOptions) {
-		super(fortifyTaskName, target, options);
+		super(TaskFortify.taskName, target, options);
 		// Settings
 		this.settings.workOffRoad = true;
 	}

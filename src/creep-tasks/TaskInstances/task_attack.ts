@@ -1,17 +1,17 @@
-import {Task} from '../Task';
-
 // Attack task, includes attack and ranged attack if applicable.
 // Use meleeAttack and rangedAttack for the exclusive variants.
 
-// TODO: creep is only approaching to range 3
+import {Task} from '../Task';
+
 export type attackTargetType = Creep | Structure;
-export const attackTaskName = 'attack';
 
 export class TaskAttack extends Task {
+
+	static taskName = 'attack';
 	target: attackTargetType;
 
 	constructor(target: attackTargetType, options = {} as TaskOptions) {
-		super(attackTaskName, target, options);
+		super(TaskAttack.taskName, target, options);
 		// Settings
 		this.settings.targetRange = 3;
 	}
@@ -33,7 +33,7 @@ export class TaskAttack extends Task {
 			if (creep.pos.isNearTo(target)) {
 				attackReturn = creep.attack(target);
 			} else {
-				attackReturn = this.move(); // approach target if you also have attack parts
+				attackReturn = this.move(1); // approach target if you also have attack parts
 			}
 		}
 		if (creep.pos.inRangeTo(target, 3) && creep.getActiveBodyparts(RANGED_ATTACK) > 0) {

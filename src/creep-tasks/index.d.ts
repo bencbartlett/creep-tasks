@@ -13,7 +13,7 @@ interface TaskSettings {
 
 interface TaskOptions {
 	blind?: boolean;
-	moveOptions: MoveToOpts;
+	moveOptions?: MoveToOpts;
 	// moveOptions: TravelToOptions; // <- uncomment this line if you use Traveler
 }
 
@@ -21,6 +21,7 @@ interface TaskData {
 	quiet?: boolean;
 	resourceType?: string;
 	amount?: number;
+	signature?: string;
 }
 
 interface protoTask {

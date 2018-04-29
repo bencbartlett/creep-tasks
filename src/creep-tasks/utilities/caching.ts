@@ -10,7 +10,7 @@ export class TargetCache {
 		this.tick = Game.time; // record last refresh
 	}
 
-	/* Generates a hash table for targets: key: TargetRef, val: targeting creep names*/
+	// Generates a hash table for targets: key: TargetRef, val: targeting creep names
 	private cacheTargets() {
 		this.targets = {};
 		for (let i in Game.creeps) {
@@ -25,6 +25,15 @@ export class TargetCache {
 		}
 	}
 
+	// Assert that there is an up-to-date target cache
+	static assert() {
+		if (!(Game.TargetCache && Game.TargetCache.tick == Game.time)) {
+			Game.TargetCache = new TargetCache();
+			Game.TargetCache.build();
+		}
+	}
+
+	// Build the target cache
 	build() {
 		this.cacheTargets();
 	}

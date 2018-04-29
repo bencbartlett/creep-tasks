@@ -1,13 +1,15 @@
+// TaskClaim: claims a new controller
+
 import {Task} from '../Task';
 
 export type claimTargetType = StructureController;
-export const claimTaskName = 'claim';
 
 export class TaskClaim extends Task {
+	static taskName = 'claim';
 	target: claimTargetType;
 
 	constructor(target: claimTargetType, options = {} as TaskOptions) {
-		super(claimTaskName, target, options);
+		super(TaskClaim.taskName, target, options);
 		// Settings
 	}
 

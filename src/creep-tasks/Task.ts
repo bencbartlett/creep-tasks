@@ -14,7 +14,6 @@
 
 import {initializeTask} from './utilities/initializer';
 import {deref, derefRoomPosition} from './utilities/helpers';
-import {TargetCache} from './utilities/caching';
 
 type targetType = { ref: string, pos: RoomPosition }; // overwrite this variable in derived classes to specify more precise typing
 
@@ -22,13 +21,6 @@ type targetType = { ref: string, pos: RoomPosition }; // overwrite this variable
  * condition Z is met" and saves a lot of convoluted and duplicated code in creep logic. A Task object contains
  * the necessary logic for traveling to a target, performing a task, and realizing when a task is no longer sensible
  * to continue.*/
-
-function buildTargetCache(): void {
-	// Cache targets per tick
-	Game.TargetCache = new TargetCache();
-	Game.TargetCache.build();
-}
-buildTargetCache();
 
 export abstract class Task implements ITask {
 
@@ -48,11 +40,6 @@ export abstract class Task implements ITask {
 	data: TaskData; 			// Data pertaining to a given instance of a task
 
 	constructor(taskName: string, target: targetType, options = {} as TaskOptions) {
-		// Check that target cache has been initialized - you can move this to execute once per tick if you want
-		if (!(Game.TargetCache && Game.TargetCache.tick == Game.time)) {
-			Game.TargetCache = new TargetCache();
-			Game.TargetCache.build();
-		}
 		// Parameters for the task
 		this.name = taskName;
 		this._creep = {
@@ -86,7 +73,6 @@ export abstract class Task implements ITask {
 		this.data = {
 			quiet: true,
 		};
-		// this.target = target as RoomObject;
 	}
 
 	get proto(): protoTask {
@@ -213,14 +199,13 @@ export abstract class Task implements ITask {
 		} else {
 			// Switch to parent task if there is one
 			this.finish();
-			let isValid = this.parent ? this.parent.isValid() : false;
-			return isValid;
+			return this.parent ? this.parent.isValid() : false;
 		}
 	}
 
-	move(): number {
+	move(range = this.settings.targetRange): number {
 		if (this.options.moveOptions && !this.options.moveOptions.range) {
-			this.options.moveOptions.range = this.settings.targetRange;
+			this.options.moveOptions.range = range;
 		}
 		return this.creep.moveTo(this.targetPos, this.options.moveOptions);
 		// return this.creep.travelTo(this.targetPos, this.options.moveOptions); // <- switch if you use Traveler

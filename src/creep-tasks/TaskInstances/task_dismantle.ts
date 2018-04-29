@@ -1,13 +1,15 @@
+// TaskDismantle: dismantles a structure
+
 import {Task} from '../Task';
 
 export type dismantleTargetType = Structure;
-export const dismantleTaskName = 'dismantle';
 
 export class TaskDismantle extends Task {
+	static taskName = 'dismantle';
 	target: dismantleTargetType;
 
 	constructor(target: dismantleTargetType, options = {} as TaskOptions) {
-		super(dismantleTaskName, target, options);
+		super(TaskDismantle.taskName, target, options);
 	}
 
 	isValidTask() {
@@ -15,8 +17,7 @@ export class TaskDismantle extends Task {
 	}
 
 	isValidTarget() {
-		let target = this.target;
-		return target && target.hits > 0;
+		return this.target && this.target.hits > 0;
 	}
 
 	work() {

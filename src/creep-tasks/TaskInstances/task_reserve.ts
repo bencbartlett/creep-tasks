@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type reserveTargetType = StructureController;
-export const reserveTaskName = 'colony';
 
 export class TaskReserve extends Task {
+
+	static taskName = 'reserve';
 	target: reserveTargetType;
 
 	constructor(target: reserveTargetType, options = {} as TaskOptions) {
-		super(reserveTaskName, target, options);
+		super(TaskReserve.taskName, target, options);
 	}
 
 	isValidTask() {
@@ -15,8 +16,8 @@ export class TaskReserve extends Task {
 	}
 
 	isValidTarget() {
-		var target = this.target;
-		return (target != null && (!target.reservation || target.reservation.ticksToEnd < 4999 ));
+		let target = this.target;
+		return (target != null && !target.owner && (!target.reservation || target.reservation.ticksToEnd < 4999));
 	}
 
 	work() {

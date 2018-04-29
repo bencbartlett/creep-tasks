@@ -9,9 +9,9 @@ export type transferTargetType =
 	| StructurePowerSpawn
 	| Creep;
 
-export const transferTaskName = 'transfer';
-
 export class TaskTransfer extends Task {
+
+	static taskName = 'transfer';
 
 	target: transferTargetType;
 	data: {
@@ -23,7 +23,7 @@ export class TaskTransfer extends Task {
 				resourceType: ResourceConstant = RESOURCE_ENERGY,
 				amount: number | undefined     = undefined,
 				options                        = {} as TaskOptions) {
-		super(transferTaskName, target, options);
+		super(TaskTransfer.taskName, target, options);
 		// Settings
 		this.data.resourceType = resourceType;
 		this.data.amount = amount;

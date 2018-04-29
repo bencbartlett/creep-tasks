@@ -1,14 +1,13 @@
 import {Task} from '../Task';
 
 export type getBoostedTargetType = StructureLab;
-export const getBoostedTaskName = 'getBoosted';
 
 export class TaskGetBoosted extends Task {
-
+	static taskName = 'getBoosted';
 	target: getBoostedTargetType;
 
 	constructor(target: getBoostedTargetType, amount: number | undefined = undefined, options = {} as TaskOptions) {
-		super(getBoostedTaskName, target, options);
+		super(TaskGetBoosted.taskName, target, options);
 		// Settings
 		this.data.amount = amount;
 	}

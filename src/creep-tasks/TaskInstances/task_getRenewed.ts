@@ -1,13 +1,13 @@
 import {Task} from '../Task';
 
 export type getRenewedTargetType = StructureSpawn;
-export const getRenewedTaskName = 'getRenewed';
 
 export class TaskGetRenewed extends Task {
+	static taskName = 'getRenewed';
 	target: getRenewedTargetType;
 
 	constructor(target: getRenewedTargetType, options = {} as TaskOptions) {
-		super(getRenewedTaskName, target, options);
+		super(TaskGetRenewed.taskName, target, options);
 	}
 
 	isValidTask() {
@@ -17,7 +17,7 @@ export class TaskGetRenewed extends Task {
 	}
 
 	isValidTarget() {
-		return this.target.my && !this.target.spawning;
+		return this.target.my;
 	}
 
 	work() {

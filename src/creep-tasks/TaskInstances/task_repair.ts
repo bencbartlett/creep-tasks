@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type repairTargetType = Structure;
-export const repairTaskName = 'repair';
 
 export class TaskRepair extends Task {
+
+	static taskName = 'repair';
 	target: repairTargetType;
 
 	constructor(target: repairTargetType, options = {} as TaskOptions) {
-		super(repairTaskName, target, options);
+		super(TaskRepair.taskName, target, options);
 		// Settings
 		this.settings.targetRange = 3;
 	}

@@ -6,11 +6,42 @@
 
 ## Examples
 
+Many Screeps bots use decision trees which run every tick to determine what a creep should be doing. Tasks streamline this process into two separate parts: task assignment and task execution. Since tasks are persistent, you only need to run decision tree logic when a creep is idle. Here's a very simple example of writing an upgrader role using tasks:
+
+```js
+let Tasks = require('creep-tasks');
+
+// Upgraders will harvest to get energy, then upgrade the room controller
+let roleUpgrader = {
+    // Task assignment logic
+    newTask: function(creep) {
+        if (creep.carry.energy > 0) {
+            creep.task = Tasks.upgrade(creep.room.controller);
+        } else {
+            creep.task = Tasks.harvest(creep.room.find(FIND_SOURCES)[0])
+        }
+    }
+};
+
+module.exports.loop = function () {
+    /* (Spawning logic would go here) */
+    let upgraders = _.values(Game.creeps);
+    for (let upgrader of upgraders) {
+        if (upgrader.isIdle) { // Obtain a new task if the creep is idle
+            roleUpgrader.newTask(upgrader);
+        }
+        // Run the assigned task
+        upgrader.run();
+    }
+};
+
+```
+
 This repository contains simple [example bots](/examples) built using `creep-tasks` written in JavaScript and in TypeScript. You can see more complex `creep-tasks` [examples](https://github.com/bencbartlett/Overmind/tree/master/src/overlords/core) in the Overmind codebase.
 
 ## Documentation 
 
-For an [explanation of how Tasks work](https://github.com/bencbartlett/creep-tasks/wiki/Anatomy-of-a-Task) and a full API reference, please refer to the [`creep-tasks` Wiki](https://github.com/bencbartlett/creep-tasks/wiki).
+For an [overview of how Tasks work](https://github.com/bencbartlett/creep-tasks/wiki/Anatomy-of-a-Task) and a full API reference, please refer to the [`creep-tasks` Wiki](https://github.com/bencbartlett/creep-tasks/wiki).
 
 ## Installation 
 

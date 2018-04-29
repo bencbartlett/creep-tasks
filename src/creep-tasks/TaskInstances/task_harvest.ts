@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type harvestTargetType = Source;
-export const harvestTaskName = 'harvest';
 
 export class TaskHarvest extends Task {
+
+	static taskName = 'harvest';
 	target: harvestTargetType;
 
 	constructor(target: harvestTargetType, options = {} as TaskOptions) {
-		super(harvestTaskName, target, options);
+		super(TaskHarvest.taskName, target, options);
 	}
 
 	isValidTask() {

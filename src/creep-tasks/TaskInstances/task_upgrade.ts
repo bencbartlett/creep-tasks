@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type upgradeTargetType = StructureController;
-export const upgradeTaskName = 'upgrade';
 
 export class TaskUpgrade extends Task {
+
+	static taskName = 'upgrade';
 	target: upgradeTargetType;
 
 	constructor(target: upgradeTargetType, options = {} as TaskOptions) {
-		super(upgradeTaskName, target, options);
+		super(TaskUpgrade.taskName, target, options);
 		// Settings
 		this.settings.targetRange = 3;
 		this.settings.workOffRoad = true;

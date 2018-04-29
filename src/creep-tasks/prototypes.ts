@@ -1,6 +1,7 @@
 // This binds a getter/setter creep.task property
 
 import {initializeTask} from './utilities/initializer';
+import {TargetCache} from './utilities/caching';
 
 Object.defineProperty(Creep.prototype, 'task', {
 	get() {
@@ -11,6 +12,8 @@ Object.defineProperty(Creep.prototype, 'task', {
 		return this._task;
 	},
 	set(task: ITask | null) {
+		// Assert that there is an up-to-date target cache
+		TargetCache.assert();
 		// Unregister target from old task if applicable
 		let oldProtoTask = this.memory.task as protoTask;
 		if (oldProtoTask) {
@@ -65,6 +68,8 @@ Object.defineProperty(RoomObject.prototype, 'ref', {
 
 Object.defineProperty(RoomObject.prototype, 'targetedBy', {
 	get: function () {
+		// Check that target cache has been initialized - you can move this to execute once per tick if you want
+		TargetCache.assert();
 		return _.map(Game.TargetCache.targets[this.ref], name => Game.creeps[name]);
 	},
 });
@@ -103,7 +108,7 @@ RoomPosition.prototype.isPassible = function (ignoreCreeps = false): boolean {
 		// Are there creeps?
 		if (ignoreCreeps == false && this.lookFor(LOOK_CREEPS).length > 0) return false;
 		// Are there structures?
-		let impassibleStructures = _.filter(this.lookFor(LOOK_STRUCTURES), function(s: Structure){
+		let impassibleStructures = _.filter(this.lookFor(LOOK_STRUCTURES), function (s: Structure) {
 			return this.structureType != STRUCTURE_ROAD &&
 				   s.structureType != STRUCTURE_CONTAINER &&
 				   !(s.structureType == STRUCTURE_RAMPART && ((<StructureRampart>s).my ||

@@ -1,6 +1,6 @@
 {
-  "name": "Creep-Tasks",
-  "version": "0.0.0",
+  "name": "creep-tasks",
+  "version": "1.0.0",
   "description": "Tasks for your creeps",
   "author": "Ben Bartlett",
   "repository": {
@@ -24,7 +24,6 @@
   "license": "MIT",
   "devDependencies": {
     "@types/lodash": "^3.10.1",
-    "@types/screeps": "^2.2.1",
     "rollup": "^0.55.3",
     "rollup-plugin-clean": "^1.0.0",
     "rollup-plugin-commonjs": "^8.2.6",
@@ -35,6 +34,6 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "source-map": "^0.6.1"
+    "@types/screeps": "^2.3.0"
   }
 }

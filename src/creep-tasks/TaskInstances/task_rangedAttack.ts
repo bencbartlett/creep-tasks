@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type rangedAttackTargetType = Creep | Structure;
-export const rangedAttackTaskName = 'rangedAttack';
 
 export class TaskRangedAttack extends Task {
+
+	static taskName = 'rangedAttack';
 	target: rangedAttackTargetType;
 
 	constructor(target: rangedAttackTargetType, options = {} as TaskOptions) {
-		super(rangedAttackTaskName, target, options);
+		super(TaskRangedAttack.taskName, target, options);
 		// Settings
 		this.settings.targetRange = 3;
 	}

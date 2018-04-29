@@ -5,12 +5,15 @@
 function deref(ref) {
     return Game.getObjectById(ref) || Game.flags[ref] || Game.creeps[ref] || Game.spawns[ref] || null;
 }
+
 function derefRoomPosition(protoPos) {
     return new RoomPosition(protoPos.x, protoPos.y, protoPos.roomName);
 }
+
 function isEnergyStructure(structure) {
     return structure.energy != undefined && structure.energyCapacity != undefined;
 }
+
 function isStoreStructure(structure) {
     return structure.store != undefined;
 }
@@ -28,6 +31,7 @@ function isStoreStructure(structure) {
  *
  * If you use Traveler, change all occurrences of creep.moveTo() to creep.travelTo()
  */
+
 /* An abstract class for encapsulating creep actions. This generalizes the concept of "do action X to thing Y until
  * condition Z is met" and saves a lot of convoluted and duplicated code in creep logic. A Task object contains
  * the necessary logic for traveling to a target, performing a task, and realizing when a task is no longer sensible

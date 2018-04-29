@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type meleeAttackTargetType = Creep | Structure;
-export const meleeAttackTaskName = 'meleeAttack';
 
 export class TaskMeleeAttack extends Task {
+
+	static taskName = 'meleeAttack';
 	target: meleeAttackTargetType;
 
 	constructor(target: meleeAttackTargetType, options = {} as TaskOptions) {
-		super(meleeAttackTaskName, target, options);
+		super(TaskMeleeAttack.taskName, target, options);
 		// Settings
 		this.settings.targetRange = 1;
 	}
@@ -17,8 +18,7 @@ export class TaskMeleeAttack extends Task {
 	}
 
 	isValidTarget() {
-		var target = this.target;
-		return target && target.hits > 0; // && target.my == false);
+		return this.target && this.target.hits > 0;
 	}
 
 	work() {

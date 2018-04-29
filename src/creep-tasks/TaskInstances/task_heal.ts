@@ -1,13 +1,14 @@
 import {Task} from '../Task';
 
 export type healTargetType = Creep;
-export const healTaskName = 'heal';
 
 export class TaskHeal extends Task {
+
+	static taskName = 'heal';
 	target: healTargetType;
 
 	constructor(target: healTargetType, options = {} as TaskOptions) {
-		super(healTaskName, target, options);
+		super(TaskHeal.taskName, target, options);
 		// Settings
 		this.settings.targetRange = 3;
 	}
@@ -17,18 +18,15 @@ export class TaskHeal extends Task {
 	}
 
 	isValidTarget() {
-		var target = this.target;
-		return (target && target.hits < target.hitsMax && target.my == true);
+		return this.target && this.target.hits < this.target.hitsMax && this.target.my;
 	}
 
 	work() {
-		var creep = this.creep;
-		var target = this.target;
-		if (creep.pos.isNearTo(target)) {
-			return creep.heal(target);
+		if (this.creep.pos.isNearTo(this.target)) {
+			return this.creep.heal(this.target);
 		} else {
-			this.move();
+			this.move(1);
 		}
-		return creep.rangedHeal(target); // you'll definitely be within range 3 because this.targetRange
+		return this.creep.rangedHeal(this.target);
 	}
 }
