@@ -4,6 +4,10 @@
 
 `creep-tasks` has been adapted from the [Overmind Screeps AI](https://github.com/bencbartlett/Overmind). 
 
+## [Documentation](https://github.com/bencbartlett/creep-tasks/wiki)
+
+For an [overview of how Tasks work](https://github.com/bencbartlett/creep-tasks/wiki/Anatomy-of-a-Task) and a full API reference, please refer to the [`creep-tasks` Wiki](https://github.com/bencbartlett/creep-tasks/wiki).
+
 ## Examples
 
 Many Screeps bots use decision trees which run every tick to determine what a creep should be doing. Tasks streamline this process into two separate parts: task assignment and task execution. Since tasks are persistent, you only need to run decision tree logic when a creep is idle. Here's a very simple example of writing an upgrader role using tasks:
@@ -38,10 +42,6 @@ module.exports.loop = function () {
 ```
 
 This repository contains simple [example bots](/examples) built using `creep-tasks` written in JavaScript and in TypeScript. You can see more complex `creep-tasks` [examples](https://github.com/bencbartlett/Overmind/tree/master/src/overlords/core) in the Overmind codebase.
-
-## Documentation 
-
-For an [overview of how Tasks work](https://github.com/bencbartlett/creep-tasks/wiki/Anatomy-of-a-Task) and a full API reference, please refer to the [`creep-tasks` Wiki](https://github.com/bencbartlett/creep-tasks/wiki).
 
 ## Installation 
 
