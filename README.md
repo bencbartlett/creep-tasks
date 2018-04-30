@@ -17,8 +17,7 @@ let Tasks = require('creep-tasks');
 
 // Upgraders will harvest to get energy, then upgrade the room controller
 let roleUpgrader = {
-    // Task assignment logic
-    newTask: function(creep) {
+    newTask: function(creep) { // task assignment logic
         if (creep.carry.energy > 0) {
             creep.task = Tasks.upgrade(creep.room.controller);
         } else {
@@ -31,14 +30,12 @@ module.exports.loop = function () {
     /* (Spawning logic would go here) */
     let upgraders = _.values(Game.creeps);
     for (let upgrader of upgraders) {
-        if (upgrader.isIdle) { // Obtain a new task if the creep is idle
+        if (upgrader.isIdle) { // obtain a new task if the creep is idle
             roleUpgrader.newTask(upgrader);
         }
-        // Run the assigned task
-        upgrader.run();
+        upgrader.run(); // run the assigned task
     }
 };
-
 ```
 
 This repository contains simple [example bots](/examples) built using `creep-tasks` written in JavaScript and in TypeScript. You can see more complex `creep-tasks` [examples](https://github.com/bencbartlett/Overmind/tree/master/src/overlords/core) in the Overmind codebase.
