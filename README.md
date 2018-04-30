@@ -54,3 +54,11 @@ TypeScript (requires [`typed-screeps`](https://github.com/screepers/typed-screep
 1. Download this repository and copy the `src/creep-tasks` directory to somewhere in your codebase.
 2. Import the necessary prototypes in `main.ts` with `import 'creep-tasks/prototypes'` outside of the main loop.
 3. Use `import {Tasks} from 'creep-tasks/Tasks'` whenever you need to set creep tasks.
+
+## Contributing
+
+If you find an issue with `creep-tasks` or want to leave feedback, please feel free to [submit an issue](https://github.com/bencbartlett/creep-tasks/issues/new). If you'd like to contribute to `creep-tasks`, [pull requests](https://github.com/bencbartlett/creep-tasks/pulls) are also welcome!
+
+## Changelog
+2018.4.29:
+- Initial release
