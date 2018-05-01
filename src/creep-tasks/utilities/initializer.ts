@@ -107,3 +107,4 @@ export function initializeTask(protoTask: protoTask): Task {
 	return task;
 }
 
+global.initializeTask = initializeTask;
