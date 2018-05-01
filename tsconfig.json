@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "system",
     "target": "es6",
     "lib": [
       "dom",
       "es2016"
     ],
-    "outDir": "tsc-out",
+    "moduleResolution": "node",
+    "outFile": "dist/creep-tasks.js",
+    "declaration": true,
     "baseUrl": "src/",
     "sourceMap": false,
     "strict": true,
@@ -18,9 +20,14 @@
     "removeComments": false,
     "types": [
       "lodash",
-      "typed-screeps"
+      "screeps"
     ]
   },
+  "include": [
+    "index.ts",
+    "src/**/*.ts",
+    "src/creep-tasks/declarations.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

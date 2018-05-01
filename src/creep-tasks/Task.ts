@@ -15,12 +15,73 @@
 import {initializeTask} from './utilities/initializer';
 import {deref, derefRoomPosition} from './utilities/helpers';
 
-type targetType = { ref: string, pos: RoomPosition }; // overwrite this variable in derived classes to specify more precise typing
+export type targetType = { ref: string, pos: RoomPosition }; // overwrite this variable in derived classes to specify more precise typing
 
 /* An abstract class for encapsulating creep actions. This generalizes the concept of "do action X to thing Y until
  * condition Z is met" and saves a lot of convoluted and duplicated code in creep logic. A Task object contains
  * the necessary logic for traveling to a target, performing a task, and realizing when a task is no longer sensible
  * to continue.*/
+
+// export interface TaskSettings {
+// 	targetRange: number;
+// 	workOffRoad: boolean;
+// }
+//
+// export interface TaskOptions {
+// 	blind?: boolean;
+// 	moveOptions?: MoveToOpts;
+// 	// moveOptions: TravelToOptions; // <- uncomment this line if you use Traveler
+// }
+//
+// export interface TaskData {
+// 	quiet?: boolean;
+// 	resourceType?: string;
+// 	amount?: number;
+// 	signature?: string;
+// }
+//
+// export interface protoTask {
+// 	name: string;
+// 	_creep: {
+// 		name: string;
+// 	};
+// 	_target: {
+// 		ref: string;
+// 		_pos: protoPos;
+// 	};
+// 	_parent: protoTask | null;
+// 	options: TaskOptions;
+// 	data: TaskData;
+// }
+//
+// export interface ITask extends protoTask {
+// 	settings: TaskSettings;
+// 	proto: protoTask;
+// 	creep: Creep;
+// 	target: RoomObject | null;
+// 	targetPos: RoomPosition;
+// 	parent: ITask | null;
+// 	manifest: ITask[];
+// 	targetManifest: (RoomObject | null)[];
+// 	targetPosManifest: RoomPosition[];
+// 	eta: number | undefined;
+//
+// 	fork(newTask: ITask): ITask;
+//
+// 	isValidTask(): boolean;
+//
+// 	isValidTarget(): boolean;
+//
+// 	isValid(): boolean;
+//
+// 	move(): number;
+//
+// 	run(): number | void;
+//
+// 	work(): number;
+//
+// 	finish(): void;
+// }
 
 export abstract class Task implements ITask {
 

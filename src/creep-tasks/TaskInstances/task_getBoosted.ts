@@ -17,7 +17,7 @@ export class TaskGetBoosted extends Task {
 			let boostCounts = _.countBy(this.creep.body, bodyPart => bodyPart.boost);
 			return boostCounts[this.target.mineralType] <= this.data.amount;
 		} else {
-			let boosts = _.compact(_.unique(_.map(this.creep.body,bodyPart => bodyPart.boost)));
+			let boosts = _.compact(_.unique(_.map(this.creep.body, bodyPart => bodyPart.boost)));
 			return !boosts.includes(this.target.mineralType);
 		}
 	}
