@@ -97,3 +97,5 @@ interface RoomPosition {
 
 	availableNeighbors(ignoreCreeps?: boolean): RoomPosition[];
 }
+
+declare const global: any;
