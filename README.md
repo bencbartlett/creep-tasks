@@ -1,4 +1,4 @@
-# creep-tasks [![npm version](https://badge.fury.io/js/creep-tasks.svg)](https://badge.fury.io/js/creep-tasks)
+# creep-tasks  [![npm version](https://badge.fury.io/js/creep-tasks.svg)](https://badge.fury.io/js/creep-tasks) [![Build Status](https://travis-ci.org/bencbartlett/creep-tasks.svg?branch=master)](https://travis-ci.org/bencbartlett/creep-tasks)
 
 `creep-tasks` is a plugin for your [Screeps](https://screeps.com/) codebase which adds a concise and flexible `creep.task` property to your creeps. Tasks are persistent objects that generalize the concept of "do action X to thing Y until condition Z is met" and they can save a lot of convoluted and redundant code in creep logic. A `Task` object contains the necessary logic for traveling to a target, performing an action on the target, and realizing when a task is no longer sensible to continue. 
 
