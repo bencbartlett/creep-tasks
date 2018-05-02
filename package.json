@@ -1,6 +1,6 @@
 {
   "name": "creep-tasks",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tasks for your creeps",
   "author": "Ben Bartlett",
   "repository": {
@@ -11,8 +11,8 @@
   "bugs": {
     "url": "https://github.com/bencbartlett/Creep-Tasks/issues"
   },
-  "main": "dist/creep-tasks.js",
-  "types": "dist/creep-tasks.d.ts",
+  "main": "dist/index.js",
+  "types": "typings/creep-tasks.d.ts",
   "scripts": {
     "compile": "tsc",
     "clean": "rm -rf \"tsc-out\""
@@ -20,8 +20,19 @@
   "license": "Unlicense",
   "devDependencies": {
     "@types/lodash": "^3.10.1",
-    "@types/screeps": "^2.3.0",
+    "rollup": "^0.55.3",
+    "rollup-plugin-clean": "^1.0.0",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-screeps": "0.1.2",
+    "rollup-plugin-typescript2": "^0.11.0",
     "typescript": "^2.7.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@types/screeps": "^2.3.0"
+  },
+  "files": [
+    "dist/**/*",
+    "typings/**/*"
+  ]
 }
