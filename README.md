@@ -17,8 +17,7 @@ let Tasks = require('creep-tasks');
 
 // Upgraders will harvest to get energy, then upgrade the room controller
 let roleUpgrader = {
-    // Task assignment logic
-    newTask: function(creep) {
+    newTask: function(creep) { // task assignment logic
         if (creep.carry.energy > 0) {
             creep.task = Tasks.upgrade(creep.room.controller);
         } else {
@@ -31,14 +30,12 @@ module.exports.loop = function () {
     /* (Spawning logic would go here) */
     let upgraders = _.values(Game.creeps);
     for (let upgrader of upgraders) {
-        if (upgrader.isIdle) { // Obtain a new task if the creep is idle
+        if (upgrader.isIdle) { // obtain a new task if the creep is idle
             roleUpgrader.newTask(upgrader);
         }
-        // Run the assigned task
-        upgrader.run();
+        upgrader.run(); // run the assigned task
     }
 };
-
 ```
 
 This repository contains simple [example bots](/examples) built using `creep-tasks` written in JavaScript and in TypeScript. You can see more complex `creep-tasks` [examples](https://github.com/bencbartlett/Overmind/tree/master/src/overlords/core) in the Overmind codebase.
@@ -54,3 +51,11 @@ TypeScript (requires [`typed-screeps`](https://github.com/screepers/typed-screep
 1. Download this repository and copy the `src/creep-tasks` directory to somewhere in your codebase.
 2. Import the necessary prototypes in `main.ts` with `import 'creep-tasks/prototypes'` outside of the main loop.
 3. Use `import {Tasks} from 'creep-tasks/Tasks'` whenever you need to set creep tasks.
+
+## Contributing
+
+If you find an issue with `creep-tasks` or want to leave feedback, please feel free to [submit an issue](https://github.com/bencbartlett/creep-tasks/issues/new). If you'd like to contribute to `creep-tasks`, [pull requests](https://github.com/bencbartlett/creep-tasks/pulls) are also welcome!
+
+## Changelog
+2018.4.29:
+- Initial release
