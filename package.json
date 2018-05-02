@@ -14,9 +14,10 @@
   "main": "dist/index.js",
   "types": "typings/creep-tasks.d.ts",
   "scripts": {
-    "build": "tsc",
-    "compile": "tsc",
-    "clean": "rm -rf dist"
+    "build": "tsc -p .",
+    "compile": "tsc -p .",
+    "clean": "rm -rf dist",
+    "test": "npm run clean && npm run build"
   },
   "license": "Unlicense",
   "devDependencies": {
