@@ -1,19 +1,16 @@
-// creep-tasks v1.1.0: github.com/bencbartlett/creep-tasks
+// creep-tasks v1.1.1: github.com/bencbartlett/creep-tasks
 'use strict';
 
 // Universal reference properties
 function deref(ref) {
     return Game.getObjectById(ref) || Game.flags[ref] || Game.creeps[ref] || Game.spawns[ref] || null;
 }
-
 function derefRoomPosition(protoPos) {
     return new RoomPosition(protoPos.x, protoPos.y, protoPos.roomName);
 }
-
 function isEnergyStructure(structure) {
     return structure.energy != undefined && structure.energyCapacity != undefined;
 }
-
 function isStoreStructure(structure) {
     return structure.store != undefined;
 }
@@ -132,7 +129,6 @@ class Task {
             quiet: true,
         };
     }
-
     get proto() {
         return {
             name: this.name,
@@ -143,7 +139,6 @@ class Task {
             data: this.data,
         };
     }
-
     set proto(protoTask) {
         // Don't write to this.name; used in task switcher
         this._creep = protoTask._creep;
@@ -152,21 +147,17 @@ class Task {
         this.options = protoTask.options;
         this.data = protoTask.data;
     }
-
     // Getter/setter for task.creep
     get creep() {
         return Game.creeps[this._creep.name];
     }
-
     set creep(creep) {
         this._creep.name = creep.name;
     }
-
     // Dereferences the target
     get target() {
         return deref(this._target.ref);
     }
-
     // Dereferences the saved target position; useful for situations where you might lose vision
     get targetPos() {
         // refresh if you have visibility of the target
@@ -175,12 +166,10 @@ class Task {
         }
         return derefRoomPosition(this._target._pos);
     }
-
     // Getter/setter for task parent
     get parent() {
         return (this._parent ? initializeTask(this._parent) : null);
     }
-
     set parent(parentTask) {
         this._parent = parentTask ? parentTask.proto : null;
         // If the task is already assigned to a creep, update their memory
@@ -189,7 +178,6 @@ class Task {
             this.creep.task = this;
         }
     }
-
     // Return a list of [this, this.parent, this.parent.parent, ...] as tasks
     get manifest() {
         let manifest = [this];
@@ -200,7 +188,6 @@ class Task {
         }
         return manifest;
     }
-
     // Return a list of [this.target, this.parent.target, ...] without fully instantiating the list of tasks
     get targetManifest() {
         let targetRefs = [this._target.ref];
@@ -211,7 +198,6 @@ class Task {
         }
         return _.map(targetRefs, ref => deref(ref));
     }
-
     // Return a list of [this.target, this.parent.target, ...] without fully instantiating the list of tasks
     get targetPosManifest() {
         let targetPositions = [this._target._pos];
@@ -222,7 +208,6 @@ class Task {
         }
         return _.map(targetPositions, protoPos => derefRoomPosition(protoPos));
     }
-
     // Fork the task, assigning a new task to the creep with this task as its parent
     fork(newTask) {
         newTask.parent = this;
@@ -231,7 +216,6 @@ class Task {
         }
         return newTask;
     }
-
     isValid() {
         let validTask = false;
         if (this.creep) {
@@ -255,7 +239,6 @@ class Task {
             return this.parent ? this.parent.isValid() : false;
         }
     }
-
     move(range = this.settings.targetRange) {
         if (this.options.moveOptions && !this.options.moveOptions.range) {
             this.options.moveOptions.range = range;
@@ -263,14 +246,12 @@ class Task {
         return this.creep.moveTo(this.targetPos, this.options.moveOptions);
         // return this.creep.travelTo(this.targetPos, this.options.moveOptions); // <- switch if you use Traveler
     }
-
     // Return expected number of ticks until creep arrives at its first destination; this requires Traveler to work!
     get eta() {
         if (this.creep && this.creep.memory._trav) {
             return this.creep.memory._trav.path.length;
         }
     }
-
     // Execute this task each tick. Returns nothing unless work is done.
     run() {
         if (this.creep.pos.inRangeTo(this.targetPos, this.settings.targetRange) && !this.creep.pos.isEdge) {
@@ -284,7 +265,6 @@ class Task {
             this.move();
         }
     }
-
     /* Bundled form of Zerg.park(); adapted from BonzAI codebase*/
     parkCreep(creep, pos = creep.pos, maintainDistance = false) {
         let road = _.find(creep.pos.lookFor(LOOK_STRUCTURES), s => s.structureType == STRUCTURE_ROAD);
@@ -313,7 +293,6 @@ class Task {
         return creep.moveTo(pos);
         // return creep.travelTo(pos); // <-- Switch if you use Traveler
     }
-
     // Finalize the task and switch to parent task (or null if there is none)
     finish() {
         if (this.creep) {
@@ -333,15 +312,12 @@ class TaskAttack extends Task {
         // Settings
         this.settings.targetRange = 3;
     }
-
     isValidTask() {
         return (this.creep.getActiveBodyparts(ATTACK) > 0 || this.creep.getActiveBodyparts(RANGED_ATTACK) > 0);
     }
-
     isValidTarget() {
         return this.target && this.target.hits > 0;
     }
-
     work() {
         let creep = this.creep;
         let target = this.target;
@@ -371,7 +347,6 @@ class TaskAttack extends Task {
         }
     }
 }
-
 TaskAttack.taskName = 'attack';
 
 // TaskBuild: builds a construction site until creep has no energy or site is complete
@@ -382,20 +357,16 @@ class TaskBuild extends Task {
         this.settings.targetRange = 3;
         this.settings.workOffRoad = true;
     }
-
     isValidTask() {
         return this.creep.carry.energy > 0;
     }
-
     isValidTarget() {
         return this.target && this.target.my && this.target.progress < this.target.progressTotal;
     }
-
     work() {
         return this.creep.build(this.target);
     }
 }
-
 TaskBuild.taskName = 'build';
 
 // TaskClaim: claims a new controller
@@ -404,20 +375,16 @@ class TaskClaim extends Task {
         super(TaskClaim.taskName, target, options);
         // Settings
     }
-
     isValidTask() {
         return (this.creep.getActiveBodyparts(CLAIM) > 0);
     }
-
     isValidTarget() {
         return (this.target != null && (!this.target.room || !this.target.owner));
     }
-
     work() {
         return this.creep.claimController(this.target);
     }
 }
-
 TaskClaim.taskName = 'claim';
 
 // TaskDismantle: dismantles a structure
@@ -425,43 +392,36 @@ class TaskDismantle extends Task {
     constructor(target, options = {}) {
         super(TaskDismantle.taskName, target, options);
     }
-
     isValidTask() {
         return (this.creep.getActiveBodyparts(WORK) > 0);
     }
-
     isValidTarget() {
         return this.target && this.target.hits > 0;
     }
-
     work() {
         return this.creep.dismantle(this.target);
     }
 }
-
 TaskDismantle.taskName = 'dismantle';
 
 class TaskFortify extends Task {
     constructor(target, options = {}) {
         super(TaskFortify.taskName, target, options);
         // Settings
+        this.settings.targetRange = 3;
         this.settings.workOffRoad = true;
     }
-
     isValidTask() {
         return (this.creep.carry.energy > 0);
     }
-
     isValidTarget() {
         let target = this.target;
         return (target != null && target.hits < target.hitsMax); // over-fortify to minimize extra trips
     }
-
     work() {
         return this.creep.repair(this.target);
     }
 }
-
 TaskFortify.taskName = 'fortify';
 
 class TaskGetBoosted extends Task {
@@ -470,7 +430,6 @@ class TaskGetBoosted extends Task {
         // Settings
         this.data.amount = amount;
     }
-
     isValidTask() {
         if (this.data.amount && this.target.mineralType) {
             let boostCounts = _.countBy(this.creep.body, bodyPart => bodyPart.boost);
@@ -481,38 +440,31 @@ class TaskGetBoosted extends Task {
             return !boosts.includes(this.target.mineralType);
         }
     }
-
     isValidTarget() {
         return true; // Warning: this will block creep actions if the lab is left unsupplied of energy or minerals
     }
-
     work() {
         return this.target.boostCreep(this.creep);
     }
 }
-
 TaskGetBoosted.taskName = 'getBoosted';
 
 class TaskGetRenewed extends Task {
     constructor(target, options = {}) {
         super(TaskGetRenewed.taskName, target, options);
     }
-
     isValidTask() {
         let hasClaimPart = _.filter(this.creep.body, (part) => part.type == CLAIM).length > 0;
         let lifetime = hasClaimPart ? CREEP_CLAIM_LIFE_TIME : CREEP_LIFE_TIME;
         return this.creep.ticksToLive != undefined && this.creep.ticksToLive < 0.9 * lifetime;
     }
-
     isValidTarget() {
         return this.target.my;
     }
-
     work() {
         return this.target.renewCreep(this.creep);
     }
 }
-
 TaskGetRenewed.taskName = 'getRenewed';
 
 class TaskGoTo extends Task {
@@ -526,15 +478,12 @@ class TaskGoTo extends Task {
         // Settings
         this.settings.targetRange = 1;
     }
-
     isValidTask() {
         return !this.creep.pos.inRangeTo(this.targetPos, this.settings.targetRange);
     }
-
     isValidTarget() {
         return true;
     }
-
     isValid() {
         // It's necessary to override task.isValid() for tasks which do not have a RoomObject target
         let validTask = false;
@@ -555,12 +504,10 @@ class TaskGoTo extends Task {
             return isValid;
         }
     }
-
     work() {
         return OK;
     }
 }
-
 TaskGoTo.taskName = 'goTo';
 
 class TaskGoToRoom extends Task {
@@ -569,15 +516,12 @@ class TaskGoToRoom extends Task {
         // Settings
         this.settings.targetRange = 24; // Target is almost always controller flag, so range of 2 is acceptable
     }
-
     isValidTask() {
         return !this.creep.pos.inRangeTo(this.targetPos, this.settings.targetRange);
     }
-
     isValidTarget() {
         return true;
     }
-
     isValid() {
         // It's necessary to override task.isValid() for tasks which do not have a RoomObject target
         let validTask = false;
@@ -598,32 +542,26 @@ class TaskGoToRoom extends Task {
             return isValid;
         }
     }
-
     work() {
         return OK;
     }
 }
-
 TaskGoToRoom.taskName = 'goToRoom';
 
 class TaskHarvest extends Task {
     constructor(target, options = {}) {
         super(TaskHarvest.taskName, target, options);
     }
-
     isValidTask() {
         return this.creep.carry.energy < this.creep.carryCapacity;
     }
-
     isValidTarget() {
         return this.target && this.target.energy > 0;
     }
-
     work() {
         return this.creep.harvest(this.target);
     }
 }
-
 TaskHarvest.taskName = 'harvest';
 
 class TaskHeal extends Task {
@@ -632,15 +570,12 @@ class TaskHeal extends Task {
         // Settings
         this.settings.targetRange = 3;
     }
-
     isValidTask() {
         return (this.creep.getActiveBodyparts(HEAL) > 0);
     }
-
     isValidTarget() {
         return this.target && this.target.hits < this.target.hitsMax && this.target.my;
     }
-
     work() {
         if (this.creep.pos.isNearTo(this.target)) {
             return this.creep.heal(this.target);
@@ -651,7 +586,6 @@ class TaskHeal extends Task {
         return this.creep.rangedHeal(this.target);
     }
 }
-
 TaskHeal.taskName = 'heal';
 
 class TaskMeleeAttack extends Task {
@@ -660,40 +594,32 @@ class TaskMeleeAttack extends Task {
         // Settings
         this.settings.targetRange = 1;
     }
-
     isValidTask() {
         return this.creep.getActiveBodyparts(ATTACK) > 0;
     }
-
     isValidTarget() {
         return this.target && this.target.hits > 0;
     }
-
     work() {
         return this.creep.attack(this.target);
     }
 }
-
 TaskMeleeAttack.taskName = 'meleeAttack';
 
 class TaskPickup extends Task {
     constructor(target, options = {}) {
         super(TaskPickup.taskName, target, options);
     }
-
     isValidTask() {
         return _.sum(this.creep.carry) < this.creep.carryCapacity;
     }
-
     isValidTarget() {
         return this.target && this.target.amount > 0;
     }
-
     work() {
         return this.creep.pickup(this.target);
     }
 }
-
 TaskPickup.taskName = 'pickup';
 
 class TaskRangedAttack extends Task {
@@ -702,20 +628,16 @@ class TaskRangedAttack extends Task {
         // Settings
         this.settings.targetRange = 3;
     }
-
     isValidTask() {
         return this.creep.getActiveBodyparts(RANGED_ATTACK) > 0;
     }
-
     isValidTarget() {
         return this.target && this.target.hits > 0;
     }
-
     work() {
         return this.creep.rangedAttack(this.target);
     }
 }
-
 TaskRangedAttack.taskName = 'rangedAttack';
 
 /* This is the withdrawal task for non-energy resources. */
@@ -726,12 +648,10 @@ class TaskWithdraw extends Task {
         this.data.resourceType = resourceType;
         this.data.amount = amount;
     }
-
     isValidTask() {
         let amount = this.data.amount || 1;
         return (_.sum(this.creep.carry) <= this.creep.carryCapacity - amount);
     }
-
     isValidTarget() {
         let amount = this.data.amount || 1;
         let target = this.target;
@@ -754,12 +674,10 @@ class TaskWithdraw extends Task {
         }
         return false;
     }
-
     work() {
         return this.creep.withdraw(this.target, this.data.resourceType, this.data.amount);
     }
 }
-
 TaskWithdraw.taskName = 'withdraw';
 
 class TaskRepair extends Task {
@@ -768,41 +686,33 @@ class TaskRepair extends Task {
         // Settings
         this.settings.targetRange = 3;
     }
-
     isValidTask() {
         return this.creep.carry.energy > 0;
     }
-
     isValidTarget() {
         return this.target && this.target.hits < this.target.hitsMax;
     }
-
     work() {
         return this.creep.repair(this.target);
     }
 }
-
 TaskRepair.taskName = 'repair';
 
 class TaskReserve extends Task {
     constructor(target, options = {}) {
         super(TaskReserve.taskName, target, options);
     }
-
     isValidTask() {
         return (this.creep.getActiveBodyparts(CLAIM) > 0);
     }
-
     isValidTarget() {
         let target = this.target;
         return (target != null && !target.owner && (!target.reservation || target.reservation.ticksToEnd < 4999));
     }
-
     work() {
         return this.creep.reserveController(this.target);
     }
 }
-
 TaskReserve.taskName = 'reserve';
 
 class TaskSignController extends Task {
@@ -810,21 +720,17 @@ class TaskSignController extends Task {
         super(TaskSignController.taskName, target, options);
         this.data.signature = signature;
     }
-
     isValidTask() {
         return true;
     }
-
     isValidTarget() {
         let controller = this.target;
         return (!controller.sign || controller.sign.text != this.data.signature);
     }
-
     work() {
         return this.creep.signController(this.target, this.data.signature);
     }
 }
-
 TaskSignController.taskName = 'signController';
 
 class TaskTransfer extends Task {
@@ -834,13 +740,11 @@ class TaskTransfer extends Task {
         this.data.resourceType = resourceType;
         this.data.amount = amount;
     }
-
     isValidTask() {
         let amount = this.data.amount || 1;
         let resourcesInCarry = this.creep.carry[this.data.resourceType] || 0;
         return resourcesInCarry >= amount;
     }
-
     isValidTarget() {
         let amount = this.data.amount || 1;
         let target = this.target;
@@ -869,12 +773,10 @@ class TaskTransfer extends Task {
         }
         return false;
     }
-
     work() {
         return this.creep.transfer(this.target, this.data.resourceType, this.data.amount);
     }
 }
-
 TaskTransfer.taskName = 'transfer';
 
 class TaskUpgrade extends Task {
@@ -884,20 +786,16 @@ class TaskUpgrade extends Task {
         this.settings.targetRange = 3;
         this.settings.workOffRoad = true;
     }
-
     isValidTask() {
         return (this.creep.carry.energy > 0);
     }
-
     isValidTarget() {
         return this.target && this.target.my;
     }
-
     work() {
         return this.creep.upgradeController(this.target);
     }
 }
-
 TaskUpgrade.taskName = 'upgrade';
 
 // TaskDrop: drops a resource at a position
@@ -915,17 +813,14 @@ class TaskDrop extends Task {
         this.data.resourceType = resourceType;
         this.data.amount = amount;
     }
-
     isValidTask() {
         let amount = this.data.amount || 1;
         let resourcesInCarry = this.creep.carry[this.data.resourceType] || 0;
         return resourcesInCarry >= amount;
     }
-
     isValidTarget() {
         return true;
     }
-
     isValid() {
         // It's necessary to override task.isValid() for tasks which do not have a RoomObject target
         let validTask = false;
@@ -946,12 +841,10 @@ class TaskDrop extends Task {
             return isValid;
         }
     }
-
     work() {
         return this.creep.drop(this.data.resourceType, this.data.amount);
     }
 }
-
 TaskDrop.taskName = 'drop';
 
 // Invalid task assigned if instantiation fails.
@@ -959,20 +852,16 @@ class TaskInvalid extends Task {
     constructor(target, options = {}) {
         super('INVALID', target, options);
     }
-
     isValidTask() {
         return false;
     }
-
     isValidTarget() {
         return false;
     }
-
     work() {
         return OK;
     }
 }
-
 TaskInvalid.taskName = 'invalid';
 
 // Reinstantiation of a task object from protoTask data
@@ -996,7 +885,7 @@ function initializeTask(protoTask) {
             task = new TaskDismantle(target);
             break;
         case TaskDrop.taskName:
-            task = new TaskDrop(target);
+            task = new TaskDrop(derefRoomPosition(protoTask._target._pos));
             break;
         case TaskFortify.taskName:
             task = new TaskFortify(target);
@@ -1063,7 +952,6 @@ class TargetCache {
         this.targets = {};
         this.tick = Game.time; // record last refresh
     }
-
     // Generates a hash table for targets: key: TargetRef, val: targeting creep names
     cacheTargets() {
         this.targets = {};
@@ -1079,7 +967,6 @@ class TargetCache {
             }
         }
     }
-
     // Assert that there is an up-to-date target cache
     static assert() {
         if (!(Game.TargetCache && Game.TargetCache.tick == Game.time)) {
@@ -1087,7 +974,6 @@ class TargetCache {
             Game.TargetCache.build();
         }
     }
-
     // Build the target cache
     build() {
         this.cacheTargets();
@@ -1210,83 +1096,63 @@ class Tasks$1 {
     static attack(target, options = {}) {
         return new TaskAttack(target, options);
     }
-
     static build(target, options = {}) {
         return new TaskBuild(target, options);
     }
-
     static claim(target, options = {}) {
         return new TaskClaim(target, options);
     }
-
     static dismantle(target, options = {}) {
         return new TaskDismantle(target, options);
     }
-
     static drop(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         return new TaskDrop(target, resourceType, amount, options);
     }
-
     static fortify(target, options = {}) {
         return new TaskFortify(target, options);
     }
-
     static getBoosted(target, amount = undefined, options = {}) {
         return new TaskGetBoosted(target, amount, options);
     }
-
     static getRenewed(target, options = {}) {
         return new TaskGetRenewed(target, options);
     }
-
     static goTo(target, options = {}) {
         return new TaskGoTo(target, options);
     }
-
     static goToRoom(target, options = {}) {
         return new TaskGoToRoom(target, options);
     }
-
     static harvest(target, options = {}) {
         return new TaskHarvest(target, options);
     }
-
     static heal(target, options = {}) {
         return new TaskHeal(target, options);
     }
-
     static meleeAttack(target, options = {}) {
         return new TaskMeleeAttack(target, options);
     }
-
     static pickup(target, options = {}) {
         return new TaskPickup(target, options);
     }
-
     static rangedAttack(target, options = {}) {
         return new TaskRangedAttack(target, options);
     }
-
     static repair(target, options = {}) {
         return new TaskRepair(target, options);
     }
-
     static reserve(target, options = {}) {
         return new TaskReserve(target, options);
     }
-
     static signController(target, signature, options = {}) {
         return new TaskSignController(target, signature, options);
     }
-
     static transfer(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         return new TaskTransfer(target, resourceType, amount, options);
     }
-
     static upgrade(target, options = {}) {
         return new TaskUpgrade(target, options);
     }
-
     static withdraw(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         return new TaskWithdraw(target, resourceType, amount, options);
     }
