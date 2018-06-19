@@ -23,6 +23,7 @@ export class TaskDrop extends Task {
 			super(TaskDrop.taskName, {ref: '', pos: target.pos}, options);
 		}
 		// Settings
+		this.settings.oneShot = true;
 		this.settings.targetRange = 0;
 		// Data
 		this.data.resourceType = resourceType;

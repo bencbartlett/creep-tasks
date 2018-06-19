@@ -25,6 +25,7 @@ export class TaskWithdraw extends Task {
 				options                        = {} as TaskOptions) {
 		super(TaskWithdraw.taskName, target, options);
 		// Settings
+		this.settings.oneShot = true;
 		this.data.resourceType = resourceType;
 		this.data.amount = amount;
 	}

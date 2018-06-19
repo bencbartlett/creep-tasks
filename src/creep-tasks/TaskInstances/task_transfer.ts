@@ -25,6 +25,7 @@ export class TaskTransfer extends Task {
 				options                        = {} as TaskOptions) {
 		super(TaskTransfer.taskName, target, options);
 		// Settings
+		this.settings.oneShot = true;
 		this.data.resourceType = resourceType;
 		this.data.amount = amount;
 	}
@@ -46,7 +47,7 @@ export class TaskTransfer extends Task {
 			return target.energy <= target.energyCapacity - amount;
 		} else {
 			if (target instanceof StructureLab) {
-				return this.data.resourceType == target.mineralType &&
+				return (target.mineralType == this.data.resourceType || !target.mineralType) &&
 					   target.mineralAmount <= target.mineralCapacity - amount;
 			} else if (target instanceof StructureNuker) {
 				return this.data.resourceType == RESOURCE_GHODIUM &&

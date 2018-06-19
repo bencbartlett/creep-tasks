@@ -19,7 +19,7 @@ Object.defineProperty(Creep.prototype, 'task', {
 		if (oldProtoTask) {
 			let oldRef = oldProtoTask._target.ref;
 			if (Game.TargetCache.targets[oldRef]) {
-				Game.TargetCache.targets[oldRef] = _.remove(Game.TargetCache.targets[oldRef], name => name == this.name);
+				_.remove(Game.TargetCache.targets[oldRef], name => name == this.name);
 			}
 		}
 		// Set the new task

@@ -22,67 +22,6 @@ export type targetType = { ref: string, pos: RoomPosition }; // overwrite this v
  * the necessary logic for traveling to a target, performing a task, and realizing when a task is no longer sensible
  * to continue.*/
 
-// export interface TaskSettings {
-// 	targetRange: number;
-// 	workOffRoad: boolean;
-// }
-//
-// export interface TaskOptions {
-// 	blind?: boolean;
-// 	moveOptions?: MoveToOpts;
-// 	// moveOptions: TravelToOptions; // <- uncomment this line if you use Traveler
-// }
-//
-// export interface TaskData {
-// 	quiet?: boolean;
-// 	resourceType?: string;
-// 	amount?: number;
-// 	signature?: string;
-// }
-//
-// export interface protoTask {
-// 	name: string;
-// 	_creep: {
-// 		name: string;
-// 	};
-// 	_target: {
-// 		ref: string;
-// 		_pos: protoPos;
-// 	};
-// 	_parent: protoTask | null;
-// 	options: TaskOptions;
-// 	data: TaskData;
-// }
-//
-// export interface ITask extends protoTask {
-// 	settings: TaskSettings;
-// 	proto: protoTask;
-// 	creep: Creep;
-// 	target: RoomObject | null;
-// 	targetPos: RoomPosition;
-// 	parent: ITask | null;
-// 	manifest: ITask[];
-// 	targetManifest: (RoomObject | null)[];
-// 	targetPosManifest: RoomPosition[];
-// 	eta: number | undefined;
-//
-// 	fork(newTask: ITask): ITask;
-//
-// 	isValidTask(): boolean;
-//
-// 	isValidTarget(): boolean;
-//
-// 	isValid(): boolean;
-//
-// 	move(): number;
-//
-// 	run(): number | void;
-//
-// 	work(): number;
-//
-// 	finish(): void;
-// }
-
 export abstract class Task implements ITask {
 
 	static taskName: string;
@@ -95,7 +34,8 @@ export abstract class Task implements ITask {
 		ref: string; 				// Target id or name
 		_pos: protoPos; 			// Target position's coordinates in case vision is lost
 	};
-	_parent: protoTask | null; 	// The parent of this task, if any. Task is changed to parent upon completion.
+	_parent: protoTask | null; 	// The parent of this task, if any. Task is changed to parent upon completion
+	tick: number;
 	settings: TaskSettings;		// Settings for a given type of task; shouldn't be modified on an instance-basis
 	options: TaskOptions;		// Options for a specific instance of a task
 	data: TaskData; 			// Data pertaining to a given instance of a task
@@ -123,13 +63,15 @@ export abstract class Task implements ITask {
 		}
 		this._parent = null;
 		this.settings = {
-			targetRange: 1,
-			workOffRoad: false,
+			targetRange: 1,		// range at which you can perform action
+			workOffRoad: false,	// whether work() should be performed off road
+			oneShot    : false, // remove this task once work() returns OK, regardless of validity
 		};
 		_.defaults(options, {
 			blind          : false,
 			travelToOptions: {},
 		});
+		this.tick = Game.time;
 		this.options = options;
 		this.data = {
 			quiet: true,
@@ -144,6 +86,7 @@ export abstract class Task implements ITask {
 			_parent: this._parent,
 			options: this.options,
 			data   : this.data,
+			tick   : this.tick,
 		};
 	}
 
@@ -154,6 +97,7 @@ export abstract class Task implements ITask {
 		this._parent = protoTask._parent;
 		this.options = protoTask.options;
 		this.data = protoTask.data;
+		this.tick = protoTask.tick;
 	}
 
 	// Getter/setter for task.creep
@@ -187,7 +131,6 @@ export abstract class Task implements ITask {
 	set parent(parentTask: Task | null) {
 		this._parent = parentTask ? parentTask.proto : null;
 		// If the task is already assigned to a creep, update their memory
-		// Although assigning something to a creep and then changing the parent is bad practice...
 		if (this.creep) {
 			this.creep.task = this;
 		}
@@ -272,6 +215,15 @@ export abstract class Task implements ITask {
 		// return this.creep.travelTo(this.targetPos, this.options.moveOptions); // <- switch if you use Traveler
 	}
 
+	/* Moves to the next position on the agenda if specified - call this in some tasks after work() is completed */
+	moveToNextPos(): number | undefined {
+		if (this.options.nextPos) {
+			let nextPos = derefRoomPosition(this.options.nextPos);
+			return this.creep.moveTo(nextPos);
+			// return this.creep.travelTo(nextPos); // <- switch if you use Traveler
+		}
+	}
+
 	// Return expected number of ticks until creep arrives at its first destination; this requires Traveler to work!
 	get eta(): number | undefined {
 		if (this.creep && (<any>this.creep.memory)._trav) {
@@ -286,7 +238,11 @@ export abstract class Task implements ITask {
 				// Move to somewhere nearby that isn't on a road
 				this.parkCreep(this.creep, this.targetPos, true);
 			}
-			return this.work();
+			let result = this.work();
+			if (this.settings.oneShot && result == OK) {
+				this.finish();
+			}
+			return result;
 		} else {
 			this.move();
 		}

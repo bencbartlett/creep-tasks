@@ -45,6 +45,8 @@ declare class Tasks {
 	static transfer(target: transferTargetType, resourceType?: ResourceConstant, amount?: number | undefined,
 					options?: TaskOptions): ITask;
 
+	static transferAll(target: transferAllTargetType, options?: TaskOptions): ITask;
+
 	static upgrade(target: upgradeTargetType, options?: TaskOptions): ITask;
 
 	static withdraw(target: withdrawTargetType, resourceType?: ResourceConstant, amount?: number | undefined,
@@ -75,6 +77,7 @@ type transferTargetType = EnergyStructure
 	| StructureNuker
 	| StructurePowerSpawn
 	| Creep;
+type transferAllTargetType = StructureStorage | StructureTerminal | StructureContainer;
 type upgradeTargetType = StructureController;
 type withdrawTargetType =
 	EnergyStructure
@@ -105,6 +108,7 @@ interface Game {
 interface TaskSettings {
 	targetRange: number;
 	workOffRoad: boolean;
+	oneShot: boolean;
 }
 
 interface TaskOptions {
@@ -132,6 +136,7 @@ interface protoTask {
 	_parent: protoTask | null;
 	options: TaskOptions;
 	data: TaskData;
+	tick: number;
 }
 
 interface ITask extends protoTask {

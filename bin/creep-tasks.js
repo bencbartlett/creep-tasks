@@ -1,4 +1,4 @@
-// creep-tasks v1.1.1: github.com/bencbartlett/creep-tasks
+// creep-tasks v1.2.0: github.com/bencbartlett/creep-tasks
 'use strict';
 
 // Universal reference properties
@@ -32,66 +32,6 @@ function isStoreStructure(structure) {
  * condition Z is met" and saves a lot of convoluted and duplicated code in creep logic. A Task object contains
  * the necessary logic for traveling to a target, performing a task, and realizing when a task is no longer sensible
  * to continue.*/
-// export interface TaskSettings {
-// 	targetRange: number;
-// 	workOffRoad: boolean;
-// }
-//
-// export interface TaskOptions {
-// 	blind?: boolean;
-// 	moveOptions?: MoveToOpts;
-// 	// moveOptions: TravelToOptions; // <- uncomment this line if you use Traveler
-// }
-//
-// export interface TaskData {
-// 	quiet?: boolean;
-// 	resourceType?: string;
-// 	amount?: number;
-// 	signature?: string;
-// }
-//
-// export interface protoTask {
-// 	name: string;
-// 	_creep: {
-// 		name: string;
-// 	};
-// 	_target: {
-// 		ref: string;
-// 		_pos: protoPos;
-// 	};
-// 	_parent: protoTask | null;
-// 	options: TaskOptions;
-// 	data: TaskData;
-// }
-//
-// export interface ITask extends protoTask {
-// 	settings: TaskSettings;
-// 	proto: protoTask;
-// 	creep: Creep;
-// 	target: RoomObject | null;
-// 	targetPos: RoomPosition;
-// 	parent: ITask | null;
-// 	manifest: ITask[];
-// 	targetManifest: (RoomObject | null)[];
-// 	targetPosManifest: RoomPosition[];
-// 	eta: number | undefined;
-//
-// 	fork(newTask: ITask): ITask;
-//
-// 	isValidTask(): boolean;
-//
-// 	isValidTarget(): boolean;
-//
-// 	isValid(): boolean;
-//
-// 	move(): number;
-//
-// 	run(): number | void;
-//
-// 	work(): number;
-//
-// 	finish(): void;
-// }
 class Task {
     constructor(taskName, target, options = {}) {
         // Parameters for the task
@@ -119,11 +59,13 @@ class Task {
         this.settings = {
             targetRange: 1,
             workOffRoad: false,
+            oneShot: false,
         };
         _.defaults(options, {
             blind: false,
             travelToOptions: {},
         });
+        this.tick = Game.time;
         this.options = options;
         this.data = {
             quiet: true,
@@ -137,6 +79,7 @@ class Task {
             _parent: this._parent,
             options: this.options,
             data: this.data,
+            tick: this.tick,
         };
     }
     set proto(protoTask) {
@@ -146,6 +89,7 @@ class Task {
         this._parent = protoTask._parent;
         this.options = protoTask.options;
         this.data = protoTask.data;
+        this.tick = protoTask.tick;
     }
     // Getter/setter for task.creep
     get creep() {
@@ -173,7 +117,6 @@ class Task {
     set parent(parentTask) {
         this._parent = parentTask ? parentTask.proto : null;
         // If the task is already assigned to a creep, update their memory
-        // Although assigning something to a creep and then changing the parent is bad practice...
         if (this.creep) {
             this.creep.task = this;
         }
@@ -245,6 +188,15 @@ class Task {
         }
         return this.creep.moveTo(this.targetPos, this.options.moveOptions);
         // return this.creep.travelTo(this.targetPos, this.options.moveOptions); // <- switch if you use Traveler
+    }
+
+    /* Moves to the next position on the agenda if specified - call this in some tasks after work() is completed */
+    moveToNextPos() {
+        if (this.options.nextPos) {
+            let nextPos = derefRoomPosition(this.options.nextPos);
+            return this.creep.moveTo(nextPos);
+            // return this.creep.travelTo(nextPos); // <- switch if you use Traveler
+        }
     }
     // Return expected number of ticks until creep arrives at its first destination; this requires Traveler to work!
     get eta() {
@@ -609,6 +561,7 @@ TaskMeleeAttack.taskName = 'meleeAttack';
 class TaskPickup extends Task {
     constructor(target, options = {}) {
         super(TaskPickup.taskName, target, options);
+        this.settings.oneShot = true;
     }
     isValidTask() {
         return _.sum(this.creep.carry) < this.creep.carryCapacity;
@@ -645,6 +598,7 @@ class TaskWithdraw extends Task {
     constructor(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         super(TaskWithdraw.taskName, target, options);
         // Settings
+        this.settings.oneShot = true;
         this.data.resourceType = resourceType;
         this.data.amount = amount;
     }
@@ -737,6 +691,7 @@ class TaskTransfer extends Task {
     constructor(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         super(TaskTransfer.taskName, target, options);
         // Settings
+        this.settings.oneShot = true;
         this.data.resourceType = resourceType;
         this.data.amount = amount;
     }
@@ -759,7 +714,7 @@ class TaskTransfer extends Task {
         }
         else {
             if (target instanceof StructureLab) {
-                return this.data.resourceType == target.mineralType &&
+                return (target.mineralType == this.data.resourceType || !target.mineralType) &&
                        target.mineralAmount <= target.mineralCapacity - amount;
             }
             else if (target instanceof StructureNuker) {
@@ -808,6 +763,7 @@ class TaskDrop extends Task {
             super(TaskDrop.taskName, {ref: '', pos: target.pos}, options);
         }
         // Settings
+        this.settings.oneShot = true;
         this.settings.targetRange = 0;
         // Data
         this.data.resourceType = resourceType;
@@ -997,7 +953,7 @@ Object.defineProperty(Creep.prototype, 'task', {
         if (oldProtoTask) {
             let oldRef = oldProtoTask._target.ref;
             if (Game.TargetCache.targets[oldRef]) {
-                Game.TargetCache.targets[oldRef] = _.remove(Game.TargetCache.targets[oldRef], name => name == this.name);
+                _.remove(Game.TargetCache.targets[oldRef], name => name == this.name);
             }
         }
         // Set the new task
@@ -1092,6 +1048,38 @@ RoomPosition.prototype.availableNeighbors = function (ignoreCreeps = false) {
     return _.filter(this.neighbors, pos => pos.isPassible(ignoreCreeps));
 };
 
+class TaskTransferAll extends Task {
+    constructor(target, options = {}) {
+        super(TaskTransferAll.taskName, target, options);
+    }
+
+    isValidTask() {
+        for (let resourceType in this.creep.carry) {
+            let amountInCarry = this.creep.carry[resourceType] || 0;
+            if (amountInCarry > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    isValidTarget() {
+        return this.target.storeCapacity - _.sum(this.target.store) >= _.sum(this.creep.carry);
+    }
+
+    work() {
+        for (let resourceType in this.creep.carry) {
+            let amountInCarry = this.creep.carry[resourceType] || 0;
+            if (amountInCarry > 0) {
+                return this.creep.transfer(this.target, resourceType);
+            }
+        }
+        return -1;
+    }
+}
+
+TaskTransferAll.taskName = 'transferAll';
+
 class Tasks$1 {
     static attack(target, options = {}) {
         return new TaskAttack(target, options);
@@ -1149,6 +1137,10 @@ class Tasks$1 {
     }
     static transfer(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         return new TaskTransfer(target, resourceType, amount, options);
+    }
+
+    static transferAll(target, options = {}) {
+        return new TaskTransferAll(target, options);
     }
     static upgrade(target, options = {}) {
         return new TaskUpgrade(target, options);

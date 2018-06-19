@@ -19,6 +19,7 @@ import {TaskTransfer, transferTargetType} from './TaskInstances/task_transfer';
 import {TaskUpgrade, upgradeTargetType} from './TaskInstances/task_upgrade';
 import {TaskWithdraw, withdrawTargetType} from './TaskInstances/task_withdraw';
 import {dropTargetType, TaskDrop} from './TaskInstances/task_drop';
+import {TaskTransferAll, transferAllTargetType} from './TaskInstances/task_transferAll';
 
 export class Tasks {
 
@@ -105,6 +106,10 @@ export class Tasks {
 					amount: number | undefined     = undefined,
 					options                        = {} as TaskOptions): TaskTransfer {
 		return new TaskTransfer(target, resourceType, amount, options);
+	}
+
+	static transferAll(target: transferAllTargetType, options = {} as TaskOptions): TaskTransferAll {
+		return new TaskTransferAll(target, options);
 	}
 
 	static upgrade(target: upgradeTargetType, options = {} as TaskOptions): TaskUpgrade {
