@@ -1,6 +1,6 @@
 {
   "name": "creep-tasks",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Tasks for your creeps",
   "author": "Ben Bartlett",
   "repository": {
@@ -31,7 +31,7 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "@types/screeps": "^2.3.0"
+    "@types/screeps": "^2.4.0"
   },
   "files": [
     "dist/**/*",

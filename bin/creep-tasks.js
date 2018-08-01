@@ -1,4 +1,4 @@
-// creep-tasks v1.2.0: github.com/bencbartlett/creep-tasks
+// creep-tasks v1.3.0: github.com/bencbartlett/creep-tasks
 'use strict';
 
 // Universal reference properties
@@ -63,7 +63,7 @@ class Task {
         };
         _.defaults(options, {
             blind: false,
-            travelToOptions: {},
+            moveOptions: {},
         });
         this.tick = Game.time;
         this.options = options;
@@ -182,14 +182,14 @@ class Task {
             return this.parent ? this.parent.isValid() : false;
         }
     }
-    move(range = this.settings.targetRange) {
+
+    moveToTarget(range = this.settings.targetRange) {
         if (this.options.moveOptions && !this.options.moveOptions.range) {
             this.options.moveOptions.range = range;
         }
         return this.creep.moveTo(this.targetPos, this.options.moveOptions);
         // return this.creep.travelTo(this.targetPos, this.options.moveOptions); // <- switch if you use Traveler
     }
-
     /* Moves to the next position on the agenda if specified - call this in some tasks after work() is completed */
     moveToNextPos() {
         if (this.options.nextPos) {
@@ -211,10 +211,14 @@ class Task {
                 // Move to somewhere nearby that isn't on a road
                 this.parkCreep(this.creep, this.targetPos, true);
             }
-            return this.work();
+            let result = this.work();
+            if (this.settings.oneShot && result == OK) {
+                this.finish();
+            }
+            return result;
         }
         else {
-            this.move();
+            this.moveToTarget();
         }
     }
     /* Bundled form of Zerg.park(); adapted from BonzAI codebase*/
@@ -247,6 +251,7 @@ class Task {
     }
     // Finalize the task and switch to parent task (or null if there is none)
     finish() {
+        this.moveToNextPos();
         if (this.creep) {
             this.creep.task = this.parent;
         }
@@ -257,7 +262,6 @@ class Task {
 }
 
 // Attack task, includes attack and ranged attack if applicable.
-// Use meleeAttack and rangedAttack for the exclusive variants.
 class TaskAttack extends Task {
     constructor(target, options = {}) {
         super(TaskAttack.taskName, target, options);
@@ -280,7 +284,7 @@ class TaskAttack extends Task {
                 attackReturn = creep.attack(target);
             }
             else {
-                attackReturn = this.move(1); // approach target if you also have attack parts
+                attackReturn = this.moveToTarget(1); // approach target if you also have attack parts
             }
         }
         if (creep.pos.inRangeTo(target, 3) && creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
@@ -376,27 +380,72 @@ class TaskFortify extends Task {
 }
 TaskFortify.taskName = 'fortify';
 
+const MIN_LIFETIME_FOR_BOOST = 0.9;
+
+function boostCounts(creep) {
+    return _.countBy(this.body, bodyPart => bodyPart.boost);
+}
+
+const boostParts = {
+    'UH': ATTACK,
+    'UO': WORK,
+    'KH': CARRY,
+    'KO': RANGED_ATTACK,
+    'LH': WORK,
+    'LO': HEAL,
+    'ZH': WORK,
+    'ZO': MOVE,
+    'GH': WORK,
+    'GO': TOUGH,
+    'UH2O': ATTACK,
+    'UHO2': WORK,
+    'KH2O': CARRY,
+    'KHO2': RANGED_ATTACK,
+    'LH2O': WORK,
+    'LHO2': HEAL,
+    'ZH2O': WORK,
+    'ZHO2': MOVE,
+    'GH2O': WORK,
+    'GHO2': TOUGH,
+    'XUH2O': ATTACK,
+    'XUHO2': WORK,
+    'XKH2O': CARRY,
+    'XKHO2': RANGED_ATTACK,
+    'XLH2O': WORK,
+    'XLHO2': HEAL,
+    'XZH2O': WORK,
+    'XZHO2': MOVE,
+    'XGH2O': WORK,
+    'XGHO2': TOUGH,
+};
 class TaskGetBoosted extends Task {
-    constructor(target, amount = undefined, options = {}) {
+    constructor(target, boostType, partCount = undefined, options = {}) {
         super(TaskGetBoosted.taskName, target, options);
         // Settings
-        this.data.amount = amount;
+        this.data.resourceType = boostType;
+        this.data.amount = partCount;
     }
     isValidTask() {
-        if (this.data.amount && this.target.mineralType) {
-            let boostCounts = _.countBy(this.creep.body, bodyPart => bodyPart.boost);
-            return boostCounts[this.target.mineralType] <= this.data.amount;
+        let lifetime = _.any(this.creep.body, part => part.type == CLAIM) ? CREEP_CLAIM_LIFE_TIME : CREEP_LIFE_TIME;
+        if (this.creep.ticksToLive && this.creep.ticksToLive < MIN_LIFETIME_FOR_BOOST * lifetime) {
+            return false; // timeout after this amount of lifespan has passed
         }
-        else {
-            let boosts = _.compact(_.unique(_.map(this.creep.body, bodyPart => bodyPart.boost)));
-            return !boosts.includes(this.target.mineralType);
-        }
+        let partCount = (this.data.amount || this.creep.getActiveBodyparts(boostParts[this.data.resourceType]));
+        return (boostCounts(this.creep)[this.data.resourceType] || 0) < partCount;
     }
     isValidTarget() {
         return true; // Warning: this will block creep actions if the lab is left unsupplied of energy or minerals
     }
     work() {
-        return this.target.boostCreep(this.creep);
+        let partCount = (this.data.amount || this.creep.getActiveBodyparts(boostParts[this.data.resourceType]));
+        if (this.target.mineralType == this.data.resourceType &&
+            this.target.mineralAmount >= LAB_BOOST_MINERAL * partCount &&
+            this.target.energy >= LAB_BOOST_ENERGY * partCount) {
+            return this.target.boostCreep(this.creep, this.data.amount);
+        }
+        else {
+            return ERR_NOT_FOUND;
+        }
     }
 }
 TaskGetBoosted.taskName = 'getBoosted';
@@ -419,13 +468,16 @@ class TaskGetRenewed extends Task {
 }
 TaskGetRenewed.taskName = 'getRenewed';
 
+function hasPos(obj) {
+    return obj.pos != undefined;
+}
 class TaskGoTo extends Task {
     constructor(target, options = {}) {
-        if (target instanceof RoomPosition) {
-            super(TaskGoTo.taskName, {ref: '', pos: target}, options);
+        if (hasPos(target)) {
+            super(TaskGoTo.taskName, {ref: '', pos: target.pos}, options);
         }
         else {
-            super(TaskGoTo.taskName, {ref: '', pos: target.pos}, options);
+            super(TaskGoTo.taskName, {ref: '', pos: target}, options);
         }
         // Settings
         this.settings.targetRange = 1;
@@ -500,15 +552,28 @@ class TaskGoToRoom extends Task {
 }
 TaskGoToRoom.taskName = 'goToRoom';
 
+function isSource(obj) {
+    return obj.energy != undefined;
+}
 class TaskHarvest extends Task {
     constructor(target, options = {}) {
         super(TaskHarvest.taskName, target, options);
     }
     isValidTask() {
-        return this.creep.carry.energy < this.creep.carryCapacity;
+        return _.sum(this.creep.carry) < this.creep.carryCapacity;
     }
     isValidTarget() {
-        return this.target && this.target.energy > 0;
+        // if (this.target && (this.target instanceof Source ? this.target.energy > 0 : this.target.mineralAmount > 0)) {
+        // 	// Valid only if there's enough space for harvester to work - prevents doing tons of useless pathfinding
+        // 	return this.target.pos.availableNeighbors().length > 0 || this.creep.pos.isNearTo(this.target.pos);
+        // }
+        // return false;
+        if (isSource(this.target)) {
+            return this.target.energy > 0;
+        }
+        else {
+            return this.target.mineralAmount > 0;
+        }
     }
     work() {
         return this.creep.harvest(this.target);
@@ -533,7 +598,7 @@ class TaskHeal extends Task {
             return this.creep.heal(this.target);
         }
         else {
-            this.move(1);
+            this.moveToTarget(1);
         }
         return this.creep.rangedHeal(this.target);
     }
@@ -609,7 +674,7 @@ class TaskWithdraw extends Task {
     isValidTarget() {
         let amount = this.data.amount || 1;
         let target = this.target;
-        if (isStoreStructure(target)) {
+        if (target instanceof Tombstone || isStoreStructure(target)) {
             return (target.store[this.data.resourceType] || 0) >= amount;
         }
         else if (isEnergyStructure(target) && this.data.resourceType == RESOURCE_ENERGY) {
@@ -647,7 +712,15 @@ class TaskRepair extends Task {
         return this.target && this.target.hits < this.target.hitsMax;
     }
     work() {
-        return this.creep.repair(this.target);
+        let result = this.creep.repair(this.target);
+        if (this.target.structureType == STRUCTURE_ROAD) {
+            // prevents workers from idling for a tick before moving to next target
+            let newHits = this.target.hits + this.creep.getActiveBodyparts(WORK) * REPAIR_POWER;
+            if (newHits > this.target.hitsMax) {
+                this.finish();
+            }
+        }
+        return result;
     }
 }
 TaskRepair.taskName = 'repair';
@@ -820,6 +893,71 @@ class TaskInvalid extends Task {
 }
 TaskInvalid.taskName = 'invalid';
 
+class TaskTransferAll extends Task {
+    constructor(target, skipEnergy = false, options = {}) {
+        super(TaskTransferAll.taskName, target, options);
+        this.data.skipEnergy = skipEnergy;
+    }
+
+    isValidTask() {
+        for (let resourceType in this.creep.carry) {
+            if (this.data.skipEnergy && resourceType == RESOURCE_ENERGY) {
+                continue;
+            }
+            let amountInCarry = this.creep.carry[resourceType] || 0;
+            if (amountInCarry > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    isValidTarget() {
+        return _.sum(this.target.store) < this.target.storeCapacity;
+    }
+
+    work() {
+        for (let resourceType in this.creep.carry) {
+            if (this.data.skipEnergy && resourceType == RESOURCE_ENERGY) {
+                continue;
+            }
+            let amountInCarry = this.creep.carry[resourceType] || 0;
+            if (amountInCarry > 0) {
+                return this.creep.transfer(this.target, resourceType);
+            }
+        }
+        return -1;
+    }
+}
+
+TaskTransferAll.taskName = 'transferAll';
+
+class TaskWithdrawAll extends Task {
+    constructor(target, options = {}) {
+        super(TaskWithdrawAll.taskName, target, options);
+    }
+
+    isValidTask() {
+        return (_.sum(this.creep.carry) < this.creep.carryCapacity);
+    }
+
+    isValidTarget() {
+        return _.sum(this.target.store) > 0;
+    }
+
+    work() {
+        for (let resourceType in this.target.store) {
+            let amountInStore = this.target.store[resourceType] || 0;
+            if (amountInStore > 0) {
+                return this.creep.withdraw(this.target, resourceType);
+            }
+        }
+        return -1;
+    }
+}
+
+TaskWithdrawAll.taskName = 'withdrawAll';
+
 // Reinstantiation of a task object from protoTask data
 function initializeTask(protoTask) {
     // Retrieve name and target data from the protoTask
@@ -847,7 +985,7 @@ function initializeTask(protoTask) {
             task = new TaskFortify(target);
             break;
         case TaskGetBoosted.taskName:
-            task = new TaskGetBoosted(target);
+            task = new TaskGetBoosted(target, protoTask.data.resourceType);
             break;
         case TaskGetRenewed.taskName:
             task = new TaskGetRenewed(target);
@@ -873,9 +1011,6 @@ function initializeTask(protoTask) {
         case TaskRangedAttack.taskName:
             task = new TaskRangedAttack(target);
             break;
-        case TaskWithdraw.taskName:
-            task = new TaskWithdraw(target);
-            break;
         case TaskRepair.taskName:
             task = new TaskRepair(target);
             break;
@@ -888,8 +1023,17 @@ function initializeTask(protoTask) {
         case TaskTransfer.taskName:
             task = new TaskTransfer(target);
             break;
+        case TaskTransferAll.taskName:
+            task = new TaskTransferAll(target);
+            break;
         case TaskUpgrade.taskName:
             task = new TaskUpgrade(target);
+            break;
+        case TaskWithdraw.taskName:
+            task = new TaskWithdraw(target);
+            break;
+        case TaskWithdrawAll.taskName:
+            task = new TaskWithdrawAll(target);
             break;
         default:
             console.log(`Invalid task name: ${taskName}! task.creep: ${protoTask._creep.name}. Deleting from memory!`);
@@ -968,8 +1112,9 @@ Object.defineProperty(Creep.prototype, 'task', {
             }
             // Register references to creep
             task.creep = this;
-            this._task = task;
         }
+        // Clear cache
+        this._task = null;
     },
 });
 Creep.prototype.run = function () {
@@ -1048,39 +1193,27 @@ RoomPosition.prototype.availableNeighbors = function (ignoreCreeps = false) {
     return _.filter(this.neighbors, pos => pos.isPassible(ignoreCreeps));
 };
 
-class TaskTransferAll extends Task {
-    constructor(target, options = {}) {
-        super(TaskTransferAll.taskName, target, options);
-    }
-
-    isValidTask() {
-        for (let resourceType in this.creep.carry) {
-            let amountInCarry = this.creep.carry[resourceType] || 0;
-            if (amountInCarry > 0) {
-                return true;
+class Tasks {
+    /* Tasks.chain allows you to transform a list of tasks into a single task, where each subsequent task in the list
+     * is the previous task's parent. SetNextPos will chain Task.nextPos as well, preventing creeps from idling for a
+     * tick between tasks. If an empty list is passed, null is returned. */
+    static chain(tasks, setNextPos = true) {
+        if (tasks.length == 0) {
+            return null;
+        }
+        if (setNextPos) {
+            for (let i = 0; i < tasks.length - 1; i++) {
+                tasks[i].options.nextPos = tasks[i + 1].targetPos;
             }
         }
-        return false;
-    }
-
-    isValidTarget() {
-        return this.target.storeCapacity - _.sum(this.target.store) >= _.sum(this.creep.carry);
-    }
-
-    work() {
-        for (let resourceType in this.creep.carry) {
-            let amountInCarry = this.creep.carry[resourceType] || 0;
-            if (amountInCarry > 0) {
-                return this.creep.transfer(this.target, resourceType);
-            }
+        // Make the accumulator task from the end and iteratively fork it
+        let task = _.last(tasks); // start with last task
+        tasks = _.dropRight(tasks); // remove it from the list
+        for (let i = (tasks.length - 1); i >= 0; i--) { // iterate over the remaining tasks
+            task = task.fork(tasks[i]);
         }
-        return -1;
+        return task;
     }
-}
-
-TaskTransferAll.taskName = 'transferAll';
-
-class Tasks$1 {
     static attack(target, options = {}) {
         return new TaskAttack(target, options);
     }
@@ -1099,8 +1232,9 @@ class Tasks$1 {
     static fortify(target, options = {}) {
         return new TaskFortify(target, options);
     }
-    static getBoosted(target, amount = undefined, options = {}) {
-        return new TaskGetBoosted(target, amount, options);
+
+    static getBoosted(target, boostType, amount = undefined, options = {}) {
+        return new TaskGetBoosted(target, boostType, amount, options);
     }
     static getRenewed(target, options = {}) {
         return new TaskGetRenewed(target, options);
@@ -1139,8 +1273,8 @@ class Tasks$1 {
         return new TaskTransfer(target, resourceType, amount, options);
     }
 
-    static transferAll(target, options = {}) {
-        return new TaskTransferAll(target, options);
+    static transferAll(target, skipEnergy = false, options = {}) {
+        return new TaskTransferAll(target, skipEnergy, options);
     }
     static upgrade(target, options = {}) {
         return new TaskUpgrade(target, options);
@@ -1148,9 +1282,12 @@ class Tasks$1 {
     static withdraw(target, resourceType = RESOURCE_ENERGY, amount = undefined, options = {}) {
         return new TaskWithdraw(target, resourceType, amount, options);
     }
+
+    static withdrawAll(target, options = {}) {
+        return new TaskWithdrawAll(target, options);
+    }
 }
 
 // creep-tasks index; ensures proper compilation order
-// If you are using TypeScript and copying the full creep-tasks directory into your codebase, you do not need this file
 
-module.exports = Tasks$1;
+module.exports = Tasks;

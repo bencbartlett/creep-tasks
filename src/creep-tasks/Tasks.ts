@@ -20,8 +20,30 @@ import {TaskUpgrade, upgradeTargetType} from './TaskInstances/task_upgrade';
 import {TaskWithdraw, withdrawTargetType} from './TaskInstances/task_withdraw';
 import {dropTargetType, TaskDrop} from './TaskInstances/task_drop';
 import {TaskTransferAll, transferAllTargetType} from './TaskInstances/task_transferAll';
+import {TaskWithdrawAll, withdrawAllTargetType} from './TaskInstances/task_withdrawAll';
 
 export class Tasks {
+
+	/* Tasks.chain allows you to transform a list of tasks into a single task, where each subsequent task in the list
+	 * is the previous task's parent. SetNextPos will chain Task.nextPos as well, preventing creeps from idling for a
+	 * tick between tasks. If an empty list is passed, null is returned. */
+	static chain(tasks: ITask[], setNextPos = true): ITask | null {
+		if (tasks.length == 0) {
+			return null;
+		}
+		if (setNextPos) {
+			for (let i = 0; i < tasks.length - 1; i++) {
+				tasks[i].options.nextPos = tasks[i + 1].targetPos;
+			}
+		}
+		// Make the accumulator task from the end and iteratively fork it
+		let task = _.last(tasks); // start with last task
+		tasks = _.dropRight(tasks); // remove it from the list
+		for (let i = (tasks.length - 1); i >= 0; i--) { // iterate over the remaining tasks
+			task = task.fork(tasks[i]);
+		}
+		return task;
+	}
 
 	static attack(target: attackTargetType, options = {} as TaskOptions): TaskAttack {
 		return new TaskAttack(target, options);
@@ -51,9 +73,10 @@ export class Tasks {
 	}
 
 	static getBoosted(target: getBoostedTargetType,
+					  boostType: _ResourceConstantSansEnergy,
 					  amount: number | undefined = undefined,
 					  options                    = {} as TaskOptions): TaskGetBoosted {
-		return new TaskGetBoosted(target, amount, options);
+		return new TaskGetBoosted(target, boostType, amount, options);
 	}
 
 	static getRenewed(target: getRenewedTargetType, options = {} as TaskOptions): TaskGetRenewed {
@@ -108,8 +131,10 @@ export class Tasks {
 		return new TaskTransfer(target, resourceType, amount, options);
 	}
 
-	static transferAll(target: transferAllTargetType, options = {} as TaskOptions): TaskTransferAll {
-		return new TaskTransferAll(target, options);
+	static transferAll(target: transferAllTargetType,
+					   skipEnergy = false,
+					   options    = {} as TaskOptions): TaskTransferAll {
+		return new TaskTransferAll(target, skipEnergy, options);
 	}
 
 	static upgrade(target: upgradeTargetType, options = {} as TaskOptions): TaskUpgrade {
@@ -121,6 +146,10 @@ export class Tasks {
 					amount: number | undefined     = undefined,
 					options                        = {} as TaskOptions): TaskWithdraw {
 		return new TaskWithdraw(target, resourceType, amount, options);
+	}
+
+	static withdrawAll(target: withdrawAllTargetType, options = {} as TaskOptions): TaskWithdrawAll {
+		return new TaskWithdrawAll(target, options);
 	}
 
 }

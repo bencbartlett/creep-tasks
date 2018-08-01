@@ -23,6 +23,7 @@ interface TaskData {
 	resourceType?: string;
 	amount?: number;
 	signature?: string;
+	skipEnergy?: boolean;
 }
 
 interface protoTask {
@@ -59,7 +60,7 @@ interface ITask extends protoTask {
 
 	isValid(): boolean;
 
-	move(): number;
+	moveToTarget(range?: number): number;
 
 	run(): number | void;
 

@@ -8,12 +8,20 @@ export class TaskTransferAll extends Task {
 	static taskName = 'transferAll';
 	target: transferAllTargetType;
 
-	constructor(target: transferAllTargetType, options = {} as TaskOptions) {
+	data: {
+		skipEnergy?: boolean;
+	};
+
+	constructor(target: transferAllTargetType, skipEnergy = false, options = {} as TaskOptions) {
 		super(TaskTransferAll.taskName, target, options);
+		this.data.skipEnergy = skipEnergy;
 	}
 
 	isValidTask() {
 		for (let resourceType in this.creep.carry) {
+			if (this.data.skipEnergy && resourceType == RESOURCE_ENERGY) {
+				continue;
+			}
 			let amountInCarry = this.creep.carry[<ResourceConstant>resourceType] || 0;
 			if (amountInCarry > 0) {
 				return true;
@@ -23,11 +31,14 @@ export class TaskTransferAll extends Task {
 	}
 
 	isValidTarget() {
-		return this.target.storeCapacity - _.sum(this.target.store) >= _.sum(this.creep.carry);
+		return _.sum(this.target.store) < this.target.storeCapacity;
 	}
 
 	work() {
 		for (let resourceType in this.creep.carry) {
+			if (this.data.skipEnergy && resourceType == RESOURCE_ENERGY) {
+				continue;
+			}
 			let amountInCarry = this.creep.carry[<ResourceConstant>resourceType] || 0;
 			if (amountInCarry > 0) {
 				return this.creep.transfer(this.target, <ResourceConstant>resourceType);

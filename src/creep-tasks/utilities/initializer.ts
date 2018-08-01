@@ -24,6 +24,8 @@ import {TaskUpgrade, upgradeTargetType} from '../TaskInstances/task_upgrade';
 import {dropTargetType, TaskDrop} from '../TaskInstances/task_drop';
 import {deref, derefRoomPosition} from './helpers';
 import {TaskInvalid} from '../TaskInstances/task_invalid';
+import {TaskTransferAll} from '../TaskInstances/task_transferAll';
+import {TaskWithdrawAll, withdrawAllTargetType} from '../TaskInstances/task_withdrawAll';
 
 
 export function initializeTask(protoTask: protoTask): Task {
@@ -52,7 +54,8 @@ export function initializeTask(protoTask: protoTask): Task {
 			task = new TaskFortify(target as fortifyTargetType);
 			break;
 		case TaskGetBoosted.taskName:
-			task = new TaskGetBoosted(target as getBoostedTargetType);
+			task = new TaskGetBoosted(target as getBoostedTargetType,
+									  protoTask.data.resourceType as _ResourceConstantSansEnergy);
 			break;
 		case TaskGetRenewed.taskName:
 			task = new TaskGetRenewed(target as getRenewedTargetType);
@@ -78,9 +81,6 @@ export function initializeTask(protoTask: protoTask): Task {
 		case TaskRangedAttack.taskName:
 			task = new TaskRangedAttack(target as rangedAttackTargetType);
 			break;
-		case TaskWithdraw.taskName:
-			task = new TaskWithdraw(target as withdrawTargetType);
-			break;
 		case TaskRepair.taskName:
 			task = new TaskRepair(target as repairTargetType);
 			break;
@@ -93,8 +93,17 @@ export function initializeTask(protoTask: protoTask): Task {
 		case TaskTransfer.taskName:
 			task = new TaskTransfer(target as transferTargetType);
 			break;
+		case TaskTransferAll.taskName:
+			task = new TaskTransferAll(target as transferAllTargetType);
+			break;
 		case TaskUpgrade.taskName:
 			task = new TaskUpgrade(target as upgradeTargetType);
+			break;
+		case TaskWithdraw.taskName:
+			task = new TaskWithdraw(target as withdrawTargetType);
+			break;
+		case TaskWithdrawAll.taskName:
+			task = new TaskWithdrawAll(target as withdrawAllTargetType);
 			break;
 		default:
 			console.log(`Invalid task name: ${taskName}! task.creep: ${protoTask._creep.name}. Deleting from memory!`);

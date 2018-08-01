@@ -68,8 +68,8 @@ export abstract class Task implements ITask {
 			oneShot    : false, // remove this task once work() returns OK, regardless of validity
 		};
 		_.defaults(options, {
-			blind          : false,
-			travelToOptions: {},
+			blind      : false,
+			moveOptions: {},
 		});
 		this.tick = Game.time;
 		this.options = options;
@@ -207,7 +207,7 @@ export abstract class Task implements ITask {
 		}
 	}
 
-	move(range = this.settings.targetRange): number {
+	moveToTarget(range = this.settings.targetRange): number {
 		if (this.options.moveOptions && !this.options.moveOptions.range) {
 			this.options.moveOptions.range = range;
 		}
@@ -232,7 +232,7 @@ export abstract class Task implements ITask {
 	}
 
 	// Execute this task each tick. Returns nothing unless work is done.
-	run(): number | void {
+	run(): number | undefined {
 		if (this.creep.pos.inRangeTo(this.targetPos, this.settings.targetRange) && !this.creep.pos.isEdge) {
 			if (this.settings.workOffRoad) {
 				// Move to somewhere nearby that isn't on a road
@@ -244,7 +244,7 @@ export abstract class Task implements ITask {
 			}
 			return result;
 		} else {
-			this.move();
+			this.moveToTarget();
 		}
 	}
 
@@ -283,6 +283,7 @@ export abstract class Task implements ITask {
 
 	// Finalize the task and switch to parent task (or null if there is none)
 	finish(): void {
+		this.moveToNextPos();
 		if (this.creep) {
 			this.creep.task = this.parent;
 		} else {

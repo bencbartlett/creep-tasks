@@ -3,6 +3,9 @@ declare module 'creep-tasks' {
 }
 
 declare class Tasks {
+
+	static chain(tasks: ITask[], setNextPos?: boolean): ITask | null
+
 	static attack(target: attackTargetType, options?: TaskOptions): ITask;
 
 	static build(target: buildTargetType, options?: TaskOptions): ITask;
@@ -16,8 +19,8 @@ declare class Tasks {
 
 	static fortify(target: fortifyTargetType, options?: TaskOptions): ITask;
 
-	static getBoosted(target: getBoostedTargetType, amount?: number | undefined,
-					  options?: TaskOptions): ITask;
+	static getBoosted(target: getBoostedTargetType, boostType: _ResourceConstantSansEnergy,
+					  amount?: number | undefined, options?: TaskOptions): ITask;
 
 	static getRenewed(target: getRenewedTargetType, options?: TaskOptions): ITask;
 
@@ -45,12 +48,14 @@ declare class Tasks {
 	static transfer(target: transferTargetType, resourceType?: ResourceConstant, amount?: number | undefined,
 					options?: TaskOptions): ITask;
 
-	static transferAll(target: transferAllTargetType, options?: TaskOptions): ITask;
+	static transferAll(target: transferAllTargetType, skipEnergy?: boolean, options?: TaskOptions): ITask;
 
 	static upgrade(target: upgradeTargetType, options?: TaskOptions): ITask;
 
 	static withdraw(target: withdrawTargetType, resourceType?: ResourceConstant, amount?: number | undefined,
 					options?: TaskOptions): ITask;
+
+	static withdrawAll(target: withdrawAllTargetType, options?: TaskOptions): ITask;
 }
 
 type attackTargetType = Creep | Structure;
@@ -84,7 +89,9 @@ type withdrawTargetType =
 	| StoreStructure
 	| StructureLab
 	| StructureNuker
-	| StructurePowerSpawn;
+	| StructurePowerSpawn
+	| Tombstone;
+type withdrawAllTargetType = StructureStorage | StructureTerminal | StructureContainer | Tombstone;
 
 interface EnergyStructure extends Structure {
 	energy: number;
@@ -118,10 +125,10 @@ interface TaskOptions {
 }
 
 interface TaskData {
-	quiet?: boolean;
 	resourceType?: string;
 	amount?: number;
 	signature?: string;
+	skipEnergy?: boolean;
 }
 
 interface protoTask {
@@ -160,7 +167,7 @@ interface ITask extends protoTask {
 
 	isValid(): boolean;
 
-	move(range?: number): number;
+	moveToTarget(range?: number): number;
 
 	run(): number | void;
 

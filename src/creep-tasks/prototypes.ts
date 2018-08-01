@@ -34,8 +34,9 @@ Object.defineProperty(Creep.prototype, 'task', {
 			}
 			// Register references to creep
 			task.creep = this;
-			this._task = task;
 		}
+		// Clear cache
+		this._task = null;
 	},
 });
 
