@@ -68,7 +68,15 @@ Navigate to your project root and run `npm install creep-tasks`. The npm module 
 If you find an issue with `creep-tasks` or want to leave feedback, please feel free to [submit an issue](https://github.com/bencbartlett/creep-tasks/issues/new). If you'd like to contribute to `creep-tasks`, [pull requests](https://github.com/bencbartlett/creep-tasks/pulls) are also welcome!
 
 ## Changelog
+
+2018.8.1:
+- Version 1.3 released - adds chaining functionality with `Tasks.chain()`, adds `TaskWithdrawAll`, adds `nextPos` option, and fixes bugs
+
+2018.6.29:
+- Version 1.2 released - adds `TaskTransferAll`, adds `oneShot` option, and fixes bugs
+
 2018.5.1:
 - Version 1.1 released - repackaged for better npm support and now with included typings
+
 2018.4.29:
 - Initial release
