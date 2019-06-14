@@ -211,6 +211,7 @@ export abstract class Task implements ITask {
 		if (this.options.moveOptions && !this.options.moveOptions.range) {
 			this.options.moveOptions.range = range;
 		}
+		if(this.creep.pos.isEdge) this.options.moveOptions.range = 0;
 		return this.creep.moveTo(this.targetPos, this.options.moveOptions);
 		// return this.creep.travelTo(this.targetPos, this.options.moveOptions); // <- switch if you use Traveler
 	}
